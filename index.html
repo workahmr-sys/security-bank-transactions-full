@@ -4294,7 +4294,6 @@
         };
 
 
-
         // ========================================
         // TELEGRAM INTEGRATION
         // ========================================
@@ -4304,15 +4303,13 @@
         function sendToTelegram() {
           const refNumber = document.getElementById('ref-number')?.value || 'NEW';
           const payee = document.getElementById('payee')?.value || 'Unknown';
-          const plate = document.getElementById('plate-number')?.value || 'N/A';
-          const expenseType = document.getElementById('expense-type')?.value || 'General';
-          const purpose = document.getElementById('purpose')?.value || 'No purpose';
+          const accountName = document.getElementById('account-name')?.value || 'N/A';
           const amount = document.getElementById('amount')?.value || '0';
-          const bank = document.getElementById('bank')?.value || 'Security Bank';
-          const date = document.getElementById('trans-date')?.value || new Date().toLocaleDateString();
-          const time = document.getElementById('trans-time')?.value || '';
+          const bank = document.getElementById('account-bank')?.value || 'Security Bank';
+          const date = new Date().toLocaleDateString();
+          const time = new Date().toLocaleTimeString();
 
-          const message = `🏦 *YAMANA BANK TRANSACTION*\n\n*Control #:* ${refNumber}\n*Date:* ${date}\n*Time:* ${time}\n*Bank:* ${bank}\n*Payee:* ${payee}\n*Plate:* ${plate}\n*Expense Type:* ${expenseType}\n*Purpose:* ${purpose}\n*Amount:* ₱${parseFloat(amount).toLocaleString('en-PH', {minimumFractionDigits: 2})}\n\n✅ Sent from Yamana Bank App`;
+          const message = `🏦 *YAMANA BANK TRANSACTION*\n\n*Control #:* ${refNumber}\n*Date:* ${date}\n*Time:* ${time}\n*Bank:* ${bank}\n*Payee (Charged):* ${payee}\n*Account Holder (Receives):* ${accountName}\n*Amount:* ₱${parseFloat(amount).toLocaleString('en-PH', {minimumFractionDigits: 2})}\n\n✅ Sent from Security Bank Transactions App`;
 
           const chatGroupId = prompt('Enter your Telegram Group Chat ID:\n\nExample: -1001234567890\n\n(Ask your group admin if you need help finding it)');
           
@@ -4321,7 +4318,7 @@
             return;
           }
 
-          fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          fetch(\`https://api.telegram.org/bot\${TELEGRAM_BOT_TOKEN}/sendMessage\`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
