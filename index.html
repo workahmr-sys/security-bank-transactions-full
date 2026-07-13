@@ -1017,7 +1017,7 @@
                             <button type="submit" class="btn btn-primary">Save Transaction</button>
                             <button type="reset" class="btn btn-secondary">Clear</button>
                             <button type="button" class="btn btn-secondary" onclick="app.cancelTransactionForm()">Cancel</button>
-                            <button type="button" class="btn btn-primary" onclick="sendToTelegram()" style="background-color: #0088cc;">📱 Send to Telegram</button>
+                            <button type="button" class="btn btn-primary" onclick="app.sendToTelegram()" style="background-color: #0088cc;">📱 Send to Telegram</button>
                         </div>
                     </form>
                 </div>
@@ -4290,10 +4290,8 @@
                     const row = dashboardTbody.insertRow();
                     row.innerHTML = '<td colspan="6" class="text-center text-muted">No transactions yet</td>';
                 }
+            }
 
-            /**
-             * TELEGRAM INTEGRATION
-             */
             sendToTelegram() {
                 const refNumber = document.getElementById('ref-number').value || 'NEW';
                 const payee = document.getElementById('payee').value || 'Unknown';
@@ -4302,33 +4300,19 @@
                 const date = new Date().toLocaleDateString();
                 const time = new Date().toLocaleTimeString();
                 
-                const message = '🏦 YAMANA BANK TRANSACTION\nControl #: ' + refNumber + '\nDate: ' + date + '\nTime: ' + time + '\nBank: ' + bank + '\nPayee: ' + payee + '\nAmount: ₱' + parseFloat(amount).toFixed(2) + '\n✅ Sent from Security Bank App';
+                const msg = '🏦 YAMANA BANK\nControl: ' + refNumber + '\nDate: ' + date + '\nTime: ' + time + '\nBank: ' + bank + '\nPayee: ' + payee + '\nAmount: ₱' + parseFloat(amount).toFixed(2) + '\n✅ Sent';
+                const cid = prompt('Enter Chat ID:');
+                if (!cid) return;
                 
-                const chatId = prompt('Enter Telegram Group Chat ID (example: -1001234567890)');
-                if (!chatId) {
-                    this.showToast('Chat ID is required', 'warning');
-                    return;
-                }
-                
-                const telegramToken = '8874970696:AAFHcKJHn6Dvb3_h8hE2qNgATkuv1z0YC7M';
-                const url = 'https://api.telegram.org/bot' + telegramToken + '/sendMessage';
-                
-                fetch(url, {
+                fetch('https://api.telegram.org/bot8874970696:AAFHcKJHn6Dvb3_h8hE2qNgATkuv1z0YC7M/sendMessage', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({chat_id: chatId, text: message})
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.ok) {
-                        this.showToast('✅ Sent to Telegram!', 'success');
-                    } else {
-                        this.showToast('❌ Error: ' + d.description, 'error');
-                    }
-                })
-                .catch(e => this.showToast('❌ Error: ' + e.message, 'error'));
-            },
+                    body: JSON.stringify({chat_id: cid, text: msg})
+                }).then(r => r.json()).then(d => {
+                    this.showToast(d.ok ? '✅ Sent!' : 'Error: ' + d.description, d.ok ? 'success' : 'error');
+                }).catch(e => this.showToast('Error: ' + e.message, 'error'));
             }
+
         };
 
         // Initialize app on document ready
