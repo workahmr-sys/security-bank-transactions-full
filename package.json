@@ -1,0 +1,8 @@
+{
+  "name": "security-bank-transactions-full",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo Building...",
+    "start": "echo Starting..."
+  }
+}
