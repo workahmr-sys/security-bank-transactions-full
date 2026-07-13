@@ -1,1 +1,4302 @@
-/mnt/user-data/uploads/yamana-bank-transaction-log__13_.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yamana Bank Transaction Log</title>
+    <style>
+        /* ========================================
+           DESIGN SYSTEM & RESET
+           ======================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-primary: #1a3a52;
+            --color-primary-light: #2c5282;
+            --color-secondary: #17a2b8;
+            --color-success: #28a745;
+            --color-pending: #ffc107;
+            --color-failed: #dc3545;
+            --color-void: #6c757d;
+            
+            --color-bg-main: #f8f9fa;
+            --color-bg-card: #ffffff;
+            --color-bg-hover: #e9ecef;
+            
+            --color-border: #dee2e6;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #666666;
+            
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.12);
+            
+            --radius: 6px;
+            --transition: all 0.2s ease;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background-color: var(--color-bg-main);
+            color: var(--color-text-primary);
+            line-height: 1.5;
+        }
+
+        /* ========================================
+           LAYOUT STRUCTURE
+           ======================================== */
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: var(--color-bg-card);
+            border-right: 1px solid var(--color-border);
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .sidebar-nav button {
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.95rem;
+            color: var(--color-text-primary);
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .sidebar-nav button:hover {
+            background-color: var(--color-bg-hover);
+            color: var(--color-secondary);
+        }
+
+        .sidebar-nav button.active {
+            background-color: var(--color-secondary);
+            color: white;
+            border-left: 3px solid var(--color-primary);
+            padding-left: 1.22rem;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* ========================================
+           DASHBOARD SECTION
+           ======================================== */
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .summary-card {
+            background: var(--color-bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--color-secondary);
+            transition: var(--transition);
+        }
+
+        .summary-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .summary-card.status-success {
+            border-left-color: var(--color-success);
+        }
+
+        .summary-card.status-pending {
+            border-left-color: var(--color-pending);
+        }
+
+        .summary-card.status-failed {
+            border-left-color: var(--color-failed);
+        }
+
+        .summary-card.status-void {
+            border-left-color: var(--color-void);
+        }
+
+        .summary-card-label {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .summary-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .summary-card-count {
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* ========================================
+           FORMS & INPUTS
+           ======================================== */
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--color-text-primary);
+        }
+
+        label .required {
+            color: var(--color-failed);
+            margin-left: 2px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="time"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-family: inherit;
+            background-color: white;
+            color: var(--color-text-primary);
+            transition: var(--transition);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
+        }
+
+        input[type="text"]:disabled,
+        input[type="number"]:disabled,
+        textarea:disabled {
+            background-color: var(--color-bg-hover);
+            color: var(--color-text-secondary);
+            cursor: not-allowed;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-danger {
+            background-color: var(--color-failed);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ========================================
+           BUTTONS
+           ======================================== */
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--color-secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #138496;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: var(--color-text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #dee2e6;
+        }
+
+        .btn-danger {
+            background-color: var(--color-failed);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-success {
+            background-color: var(--color-success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        /* ========================================
+           TABLES
+           ======================================== */
+
+        .table-wrapper {
+            background: var(--color-bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 0.875rem;
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        tbody tr:hover {
+            background-color: var(--color-bg-hover);
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: rgba(248, 249, 250, 0.5);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-badge.success {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #155724;
+        }
+
+        .status-badge.pending {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #856404;
+        }
+
+        .status-badge.failed {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #721c24;
+        }
+
+        .status-badge.void {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #383d41;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* ========================================
+           MODALS
+           ======================================== */
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--color-bg-card);
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            color: var(--color-primary);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--color-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        /* ========================================
+           TOAST NOTIFICATIONS
+           ======================================== */
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            z-index: 2000;
+            animation: slideInRight 0.3s ease;
+            max-width: 350px;
+            border-left: 4px solid var(--color-secondary);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left-color: var(--color-success);
+        }
+
+        .toast.error {
+            border-left-color: var(--color-failed);
+        }
+
+        .toast.warning {
+            border-left-color: var(--color-pending);
+        }
+
+        /* ========================================
+           SEARCH & FILTER
+           ======================================== */
+
+        .search-filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-item select {
+            min-width: 150px;
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 1rem;
+            }
+
+            .app-header h1 {
+                font-size: 1.25rem;
+            }
+
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 200px;
+                border-right: none;
+                border-bottom: 1px solid var(--color-border);
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                flex-direction: row;
+            }
+
+            .sidebar-nav li {
+                border-bottom: none;
+                border-right: 1px solid var(--color-border);
+            }
+
+            .sidebar-nav button {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 1rem;
+            }
+
+            .summary-card {
+                padding: 1rem;
+            }
+
+            .summary-card-value {
+                font-size: 1.5rem;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            .modal-content {
+                width: 95%;
+                max-height: 95vh;
+            }
+
+            .toast {
+                bottom: 1rem;
+                right: 1rem;
+                max-width: 90%;
+            }
+        }
+
+        /* ========================================
+           UTILITIES
+           ======================================== */
+
+        .text-muted {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 {
+            margin-top: 1rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--color-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <h1>Yamana Bank Transaction Log</h1>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- SIDEBAR NAVIGATION -->
+            <nav class="sidebar">
+                <ul class="sidebar-nav">
+                    <li><button class="nav-btn active" data-section="dashboard">Dashboard</button></li>
+                    <li><button class="nav-btn" data-section="requests">Requests</button></li>
+                    <li><button class="nav-btn" data-section="new-transaction">New Transaction</button></li>
+                    <li><button class="nav-btn" data-section="transactions">Transaction History</button></li>
+                    <li><button class="nav-btn" data-section="master-data">Master Data</button></li>
+                    <li><button class="nav-btn" data-section="reports">Reports</button></li>
+                    <li><button class="nav-btn" data-section="backup">Backup & Export</button></li>
+                </ul>
+            </nav>
+
+            <!-- CONTENT AREA -->
+            <div class="content-area">
+
+                <!-- ============ DASHBOARD SECTION ============ -->
+                <div id="dashboard" class="section active">
+                    <h2 class="section-title">Dashboard</h2>
+                    
+                    <div class="dashboard-grid">
+                        <div class="summary-card">
+                            <div class="summary-card-label">Today's Transactions</div>
+                            <div class="summary-card-value" id="today-count">0</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-label">Today's Amount</div>
+                            <div class="summary-card-value" id="today-amount">₱0.00</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-card-label">Current Month Total</div>
+                            <div class="summary-card-value" id="month-amount">₱0.00</div>
+                        </div>
+                        <div class="summary-card status-pending">
+                            <div class="summary-card-label">Pending</div>
+                            <div class="summary-card-value" id="pending-count">0</div>
+                        </div>
+                        <div class="summary-card status-success">
+                            <div class="summary-card-label">Successful</div>
+                            <div class="summary-card-value" id="success-count">0</div>
+                        </div>
+                        <div class="summary-card status-failed">
+                            <div class="summary-card-label">Failed</div>
+                            <div class="summary-card-value" id="failed-count">0</div>
+                        </div>
+                        <div class="summary-card status-void">
+                            <div class="summary-card-label">Voided</div>
+                            <div class="summary-card-value" id="void-count">0</div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title" style="margin-top: 2rem; font-size: 1.2rem; border-bottom: 1px solid var(--color-border);">Recent Transactions</h3>
+                    
+                    <div class="table-wrapper" id="dashboard-table-wrapper">
+                        <table id="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Reference #</th>
+                                    <th>Date</th>
+                                    <th>Bank</th>
+                                    <th>Payee</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ============ REQUESTS SECTION ============ -->
+                <div id="requests" class="section">
+                    <h2 class="section-title">Transaction Requests</h2>
+                    
+                    <div style="margin-bottom: 2rem;">
+                        <button class="btn btn-primary" onclick="app.navigateTo('new-request')">+ New Request</button>
+                    </div>
+
+                    <div class="search-filter-bar">
+                        <div class="search-box">
+                            <input type="text" id="request-search-input" placeholder="Search by Request ID, Requested By, Account Name...">
+                        </div>
+                        <div class="filter-group">
+                            <select id="request-filter-status">
+                                <option value="">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table id="requests-table">
+                            <thead>
+                                <tr>
+                                    <th>Request ID</th>
+                                    <th>Date</th>
+                                    <th>Requested By</th>
+                                    <th>Account Name</th>
+                                    <th>Amount</th>
+                                    <th>Expense Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requests-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ============ NEW REQUEST SECTION ============ -->
+                <div id="new-request" class="section">
+                    <h2 class="section-title">New Transaction Request</h2>
+                    
+                    <form id="request-form" class="form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Request Date <span class="required">*</span></label>
+                                <input type="date" id="request-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Requested By <span class="required">*</span></label>
+                                <select id="request-by" required>
+                                    <option value="">-- Select Payee --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Bank <span class="required">*</span></label>
+                                <select id="request-bank" required>
+                                    <option value="">-- Select Bank --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Account Name <span class="required">*</span></label>
+                                <select id="request-payee" required>
+                                    <option value="">-- Select Account --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Account Number</label>
+                                <input type="text" id="request-account-number" readonly>
+                                <p class="text-muted">Auto-populated from payee</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount <span class="required">*</span></label>
+                                <input type="number" id="request-amount" placeholder="0.00" step="0.01" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expense Type <span class="required">*</span></label>
+                                <select id="request-expense-type" required>
+                                    <option value="">-- Select Expense Type --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Plate Number <span class="required">*</span></label>
+                                <select id="request-plate-number" required>
+                                    <option value="">-- Select Plate Number --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Purpose <span class="required">*</span></label>
+                            <textarea id="request-purpose" placeholder="Transaction purpose..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Remarks</label>
+                            <textarea id="request-remarks" placeholder="Additional remarks..."></textarea>
+                        </div>
+
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                            <button type="reset" class="btn btn-secondary">Clear</button>
+                            <button type="button" class="btn btn-secondary" onclick="app.navigateTo('requests')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="new-transaction" class="section">
+                    <h2 class="section-title">New Transaction</h2>
+                    
+                    <form id="transaction-form" class="form">
+                        <input type="hidden" id="source-request-id">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Control Number</label>
+                                <input type="text" id="ref-number">
+                                <p class="text-muted">Auto-generated</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Transaction Date <span class="required">*</span></label>
+                                <input type="date" id="trans-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Transaction Time <span class="required">*</span></label>
+                                <input type="time" id="trans-time" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Bank <span class="required">*</span></label>
+                                <select id="bank" required>
+                                    <option value="">-- Select Bank --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Payee <span class="required">*</span></label>
+                                <select id="payee" required>
+                                    <option value="">-- Select Payee --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Account Number</label>
+                                <input type="text" id="account-number" readonly>
+                                <p class="text-muted">Auto-populated from payee</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount <span class="required">*</span></label>
+                                <input type="number" id="amount" placeholder="0.00" step="0.01" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expense Type <span class="required">*</span></label>
+                                <select id="expense-type" required>
+                                    <option value="">-- Select Expense Type --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Plate Number <span class="required">*</span></label>
+                                <select id="plate-number" required>
+                                    <option value="">-- Select Plate Number --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Purpose</label>
+                            <textarea id="purpose" placeholder="Transaction purpose..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Remarks</label>
+                            <textarea id="remarks" placeholder="Additional remarks..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Status <span class="required">*</span></label>
+                            <select id="status" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Successful">Successful</option>
+                                <option value="Failed">Failed</option>
+                            </select>
+                        </div>
+
+                        <!-- ===== SPLIT TRANSACTIONS SECTION ===== -->
+                        <div style="border-top: 2px solid var(--color-border); padding-top: 2rem; margin-top: 2rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                                <h3 style="font-size: 1.1rem; color: var(--color-primary); margin: 0;">Split Transactions</h3>
+                                <button type="button" class="btn btn-primary btn-small" onclick="app.addSplit()">+ Add Split</button>
+                            </div>
+
+                            <p style="color: var(--color-text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                                Use splits when one control number covers multiple payees. Each split will create a separate transaction with the same control number and date.
+                            </p>
+
+                            <div id="splits-container">
+                                <!-- Splits will be added here dynamically -->
+                            </div>
+
+                            <div style="margin-top: 1rem; padding: 1rem; background-color: var(--color-bg-main); border-radius: var(--radius);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600;">Total Amount (Splits):</span>
+                                    <span style="font-size: 1.2rem; font-weight: 700; color: var(--color-primary);">₱<span id="splits-total">0.00</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">Save Transaction</button>
+                            <button type="reset" class="btn btn-secondary">Clear</button>
+                            <button type="button" class="btn btn-secondary" onclick="app.cancelTransactionForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ============ TRANSACTION HISTORY SECTION ============ -->
+                <div id="transactions" class="section">
+                    <h2 class="section-title">Transaction History</h2>
+                    
+                    <div class="search-filter-bar">
+                        <div class="search-box">
+                            <input type="text" id="search-input" placeholder="Search by ref #, control #, payee, plate, bank...">
+                        </div>
+                        <div class="filter-group">
+                            <select id="filter-status">
+                                <option value="">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Successful">Successful</option>
+                                <option value="Failed">Failed</option>
+                                <option value="VOID">Voided</option>
+                            </select>
+                            <select id="filter-bank">
+                                <option value="">All Banks</option>
+                            </select>
+                            <select id="filter-date-range">
+                                <option value="">All Dates</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="year">This Year</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table id="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>Reference #</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Bank</th>
+                                    <th>Control #</th>
+                                    <th>Payee</th>
+                                    <th>Plate</th>
+                                    <th>Expense Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ============ MASTER DATA SECTION ============ -->
+                <div id="master-data" class="section">
+                    <h2 class="section-title">Master Data</h2>
+                    
+                    <!-- PAYEE CATEGORIES -->
+                    <div style="margin-bottom: 3rem;">
+                        <h3 style="font-size: 1.1rem; color: var(--color-primary); margin-bottom: 1rem;">Payee Categories</h3>
+                        <button class="btn btn-primary btn-small" onclick="app.openModal('payee-category-modal')">+ Add Category</button>
+                        
+                        <div class="table-wrapper" style="margin-top: 1rem;">
+                            <table id="payee-categories-table">
+                                <thead>
+                                    <tr>
+                                        <th>Category Name</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payee-categories-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- PLATE NUMBERS -->
+                    <div style="margin-bottom: 3rem;">
+                        <h3 style="font-size: 1.1rem; color: var(--color-primary); margin-bottom: 1rem;">Plate Numbers</h3>
+                        <button class="btn btn-primary btn-small" onclick="app.openModal('plate-modal')">+ Add Plate Number</button>
+                        
+                        <div class="table-wrapper" style="margin-top: 1rem;">
+                            <table id="plates-table">
+                                <thead>
+                                    <tr>
+                                        <th>Plate Number</th>
+                                        <th>Vehicle Type</th>
+                                        <th>Assigned Driver</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plates-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- PAYEES -->
+                    <div style="margin-bottom: 3rem;">
+                        <h3 style="font-size: 1.1rem; color: var(--color-primary); margin-bottom: 1rem;">Payees</h3>
+                        <button class="btn btn-primary btn-small" onclick="app.openModal('payee-modal')">+ Add Payee</button>
+                        
+                        <div class="table-wrapper" style="margin-top: 1rem;">
+                            <table id="payees-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Bank Accounts</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payees-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- EXPENSE TYPES -->
+                    <div style="margin-bottom: 3rem;">
+                        <h3 style="font-size: 1.1rem; color: var(--color-primary); margin-bottom: 1rem;">Expense Types</h3>
+                        <button class="btn btn-primary btn-small" onclick="app.openModal('expense-type-modal')">+ Add Expense Type</button>
+                        
+                        <div class="table-wrapper" style="margin-top: 1rem;">
+                            <table id="expense-types-table">
+                                <thead>
+                                    <tr>
+                                        <th>Expense Type</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expense-types-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- BANKS -->
+                    <div>
+                        <h3 style="font-size: 1.1rem; color: var(--color-primary); margin-bottom: 1rem;">Banks</h3>
+                        <button class="btn btn-primary btn-small" onclick="app.openModal('bank-modal')">+ Add Bank</button>
+                        
+                        <div class="table-wrapper" style="margin-top: 1rem;">
+                            <table id="banks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Bank Name</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="banks-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ REPORTS SECTION ============ -->
+                <div id="reports" class="section">
+                    <h2 class="section-title">Reports</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        <div class="summary-card">
+                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Summary Reports</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('daily')">Daily Summary</button>
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('weekly')">Weekly Summary</button>
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('monthly')">Monthly Summary</button>
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('annual')">Annual Summary</button>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Breakdown Reports</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('by-plate')">By Plate Number</button>
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('by-payee')">By Payee</button>
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('by-expense')">By Expense Type</button>
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('by-bank')">By Bank</button>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Status Reports</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('failed')">Failed Transactions</button>
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('voided')">Voided Transactions</button>
+                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('pending')">Pending Transactions</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="report-output" class="table-wrapper" style="margin-top: 2rem; display: none;">
+                        <div id="report-content"></div>
+                    </div>
+                </div>
+
+                <!-- ============ BACKUP SECTION ============ -->
+                <div id="backup" class="section">
+                    <h2 class="section-title">Backup & Export</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                        <div class="summary-card">
+                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Data Management</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button class="btn btn-success btn-small" onclick="app.exportJSON()">Export as JSON</button>
+                                <button class="btn btn-success btn-small" onclick="app.exportMasterData()">Export Master Data</button>
+                                <button class="btn btn-secondary btn-small" onclick="document.getElementById('import-file').click()">Import JSON</button>
+                                <input type="file" id="import-file" accept=".json" style="display: none;">
+                                <button class="btn btn-secondary btn-small" onclick="document.getElementById('import-master-data-file').click()">Import Master Data</button>
+                                <input type="file" id="import-master-data-file" accept=".json" style="display: none;">
+                                <button class="btn btn-primary btn-small" onclick="app.exportCSV()">Export as CSV</button>
+                                <button class="btn btn-secondary btn-small" onclick="window.print()">Print Report</button>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Database Info</h3>
+                            <div id="db-info" style="font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.8;">
+                                <p><strong>Total Transactions:</strong> <span id="db-trans-count">0</span></p>
+                                <p><strong>Total Payees:</strong> <span id="db-payee-count">0</span></p>
+                                <p><strong>Total Plate Numbers:</strong> <span id="db-plate-count">0</span></p>
+                                <p><strong>Storage Used:</strong> <span id="db-storage">0 KB</span></p>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem; color: var(--color-failed);">Danger Zone</h3>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button class="btn btn-danger btn-small" onclick="app.clearAllData()">Clear All Data</button>
+                                <p class="text-muted">⚠️ This action cannot be undone.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MODALS ============ -->
+
+    <!-- VIEW TRANSACTION MODAL -->
+    <div id="view-transaction-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>View Transaction</h2>
+                <button class="modal-close" onclick="app.closeModal('view-transaction-modal')">×</button>
+            </div>
+            <div class="modal-body" id="view-transaction-content">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('view-transaction-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT TRANSACTION MODAL -->
+    <div id="edit-transaction-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Transaction</h2>
+                <button class="modal-close" onclick="app.closeModal('edit-transaction-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-transaction-form">
+                    <input type="hidden" id="edit-trans-id">
+                    
+                    <div class="form-group">
+                        <label>Control Number</label>
+                        <input type="text" id="edit-ref-number" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Control Number</label>
+                        <input type="text" id="edit-control-number">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="edit-trans-date">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Time</label>
+                        <input type="time" id="edit-trans-time">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bank <span class="required">*</span></label>
+                        <select id="edit-bank" required>
+                            <option value="">-- Select Bank --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Payee <span class="required">*</span></label>
+                        <select id="edit-payee" required>
+                            <option value="">-- Select Payee --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Account Number</label>
+                        <input type="text" id="edit-account-number">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Amount <span class="required">*</span></label>
+                        <input type="number" id="edit-amount" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Expense Type <span class="required">*</span></label>
+                        <select id="edit-expense-type" required>
+                            <option value="">-- Select Expense Type --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Plate Number <span class="required">*</span></label>
+                        <select id="edit-plate-number" required>
+                            <option value="">-- Select Plate Number --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Purpose</label>
+                        <textarea id="edit-purpose"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Remarks</label>
+                        <textarea id="edit-remarks"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status <span class="required">*</span></label>
+                        <select id="edit-status" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Successful">Successful</option>
+                            <option value="Failed">Failed</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('edit-transaction-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="app.saveEditedTransaction()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VOID TRANSACTION MODAL -->
+    <div id="void-transaction-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Void Transaction</h2>
+                <button class="modal-close" onclick="app.closeModal('void-transaction-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--color-text-secondary);">Please provide a reason for voiding this transaction.</p>
+                <form id="void-form">
+                    <input type="hidden" id="void-trans-id">
+                    <div class="form-group">
+                        <label>Reason for Void <span class="required">*</span></label>
+                        <textarea id="void-reason" placeholder="Why is this transaction being voided?" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('void-transaction-modal')">Cancel</button>
+                <button class="btn btn-danger" onclick="app.confirmVoid()">Void Transaction</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLATE MODAL -->
+    <div id="plate-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="plate-modal-title">Add Plate Number</h2>
+                <button class="modal-close" onclick="app.closeModal('plate-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="plate-form">
+                    <input type="hidden" id="plate-id">
+                    <div class="form-group">
+                        <label>Plate Number <span class="required">*</span></label>
+                        <input type="text" id="plate-number-input" placeholder="e.g., YMN-001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Type <span class="required">*</span></label>
+                        <input type="text" id="vehicle-type" placeholder="e.g., Truck, Van, Car" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Driver</label>
+                        <input type="text" id="assigned-driver" placeholder="Driver name">
+                    </div>
+                    <div class="form-group">
+                        <label>Status <span class="required">*</span></label>
+                        <select id="plate-status" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('plate-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="app.savePlate()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYEE MODAL -->
+    <div id="payee-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="payee-modal-title">Add Payee</h2>
+                <button class="modal-close" onclick="app.closeModal('payee-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="payee-form">
+                    <input type="hidden" id="payee-id">
+                    <div class="form-group">
+                        <label>Name <span class="required">*</span></label>
+                        <input type="text" id="payee-name" placeholder="Payee name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category <span class="required">*</span></label>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 0.75rem;">
+                            <select id="payee-category" required>
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary btn-small" onclick="app.openModal('payee-category-modal')" title="Add new category">+ Add</button>
+                        </div>
+                    </div>
+                    
+                    <div style="background-color: var(--color-bg-hover); padding: 1rem; border-radius: var(--radius); margin: 1rem 0;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <input type="checkbox" id="payee-no-bank-account" style="width: 20px; height: 20px; cursor: pointer;">
+                            <label for="payee-no-bank-account" style="margin: 0; cursor: pointer; font-weight: 500;">No Bank Account (Direct Payment / Cash)</label>
+                        </div>
+
+                        <div id="bank-accounts-section">
+                            <h4 style="margin-bottom: 1rem; font-size: 0.95rem; color: var(--color-primary);">Bank Accounts</h4>
+                            <div id="bank-accounts-list" style="margin-bottom: 1rem;">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                <select id="payee-bank-select">
+                                    <option value="">-- Select Bank --</option>
+                                </select>
+                                <input type="text" id="payee-bank-account-number" placeholder="Account Number">
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-small" onclick="app.addBankAccount()" style="margin-top: 0.75rem;">Add Bank Account</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="payee-notes" placeholder="Additional notes"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('payee-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="app.savePayee()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYEE CATEGORY MODAL -->
+    <div id="payee-category-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="payee-category-modal-title">Add Payee Category</h2>
+                <button class="modal-close" onclick="app.closeModal('payee-category-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="payee-category-form">
+                    <input type="hidden" id="payee-category-id">
+                    <div class="form-group">
+                        <label>Category Name <span class="required">*</span></label>
+                        <input type="text" id="payee-category-input" placeholder="e.g., Driver, Supplier, Mechanic" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('payee-category-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="app.savePayeeCategory()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPENSE TYPE MODAL -->
+    <div id="expense-type-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="expense-type-modal-title">Add Expense Type</h2>
+                <button class="modal-close" onclick="app.closeModal('expense-type-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="expense-type-form">
+                    <input type="hidden" id="expense-type-id">
+                    <div class="form-group">
+                        <label>Expense Type <span class="required">*</span></label>
+                        <input type="text" id="expense-type-input" placeholder="e.g., Fuel, Repair" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('expense-type-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="app.saveExpenseType()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BANK MODAL -->
+    <div id="bank-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="bank-modal-title">Add Bank</h2>
+                <button class="modal-close" onclick="app.closeModal('bank-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="bank-form">
+                    <input type="hidden" id="bank-id">
+                    <div class="form-group">
+                        <label>Bank Name <span class="required">*</span></label>
+                        <input type="text" id="bank-name" placeholder="e.g., Security Bank" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('bank-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="app.saveBank()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="confirmation-title">Confirm Action</h2>
+                <button class="modal-close" onclick="app.closeModal('confirmation-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmation-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('confirmation-modal')">Cancel</button>
+                <button class="btn btn-danger" id="confirmation-btn" onclick="">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        /**
+         * Yamana Bank Transaction Log
+         * Professional offline accounting application
+         * All data stored in browser Local Storage
+         */
+
+        const app = {
+            // ========================================
+            // DATA MANAGEMENT
+            // ========================================
+
+            data: {
+                transactions: [],
+                plates: [],
+                payees: [],
+                payeeCategories: [],
+                expenseTypes: [],
+                banks: [],
+                voidLog: [],
+                requests: [],
+                lastControlNumber: 2461
+            },
+
+            /**
+             * Initialize the application
+             */
+            init() {
+                this.loadData();
+                this.initializeDefaults();
+                
+                // Initialize control number tracking (start from 2461 so first new transaction is 2462)
+                if (!this.data.lastControlNumber || this.data.lastControlNumber < 2461) {
+                    this.data.lastControlNumber = 2461;
+                }
+                
+                this.setupEventListeners();
+                this.generateReferenceNumber();
+                this.populateDropdowns();
+                this.updateDashboard();
+                this.refreshAllTables();
+            },
+
+            /**
+             * Load all data from Local Storage
+             */
+            loadData() {
+                const stored = localStorage.getItem('yamanaBankTransactionLog');
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        this.data = { ...this.data, ...parsed };
+                    } catch (e) {
+                        console.error('Error loading data:', e);
+                    }
+                }
+            },
+
+            /**
+             * Save all data to Local Storage
+             */
+            saveData() {
+                localStorage.setItem('yamanaBankTransactionLog', JSON.stringify(this.data));
+            },
+
+            /**
+             * Initialize default master data
+             */
+            initializeDefaults() {
+                // Default payee categories
+                const defaultCategories = [
+                    'Driver', 'Supplier', 'Mechanic', 'Fuel Station', 'Government',
+                    'Employee', 'Others'
+                ];
+
+                this.data.payeeCategories = (this.data.payeeCategories && this.data.payeeCategories.length > 0) ? this.data.payeeCategories :
+                    defaultCategories.map((name, idx) => ({
+                        id: `category-${idx}`,
+                        name
+                    }));
+
+                // Default banks
+                const defaultBanks = [
+                    'Security Bank', 'BDO', 'BPI', 'Metrobank', 'Landbank',
+                    'UnionBank', 'RCBC', 'PNB', 'GCash', 'Maya', 'Others'
+                ];
+
+                this.data.banks = (this.data.banks && this.data.banks.length > 0) ? this.data.banks :
+                    defaultBanks.map((name, idx) => ({
+                        id: `bank-${idx}`,
+                        name
+                    }));
+
+                // Default expense types
+                const defaultExpenses = [
+                    'Fuel', 'Driver Salary', 'Boundary', 'Repair', 'Maintenance',
+                    'Tires', 'Battery', 'Oil', 'Toll Fee', 'Ferry', 'Office Supplies',
+                    'Cash Advance', 'Government Fees', 'Insurance', 'Registration', 'Others'
+                ];
+
+                this.data.expenseTypes = (this.data.expenseTypes && this.data.expenseTypes.length > 0) ? this.data.expenseTypes :
+                    defaultExpenses.map((name, idx) => ({
+                        id: `expense-${idx}`,
+                        name
+                    }));
+
+                this.saveData();
+            },
+
+            /**
+             * Generate unique transaction reference number
+             */
+            generateReferenceNumber() {
+                // Initialize last control number if not set
+                if (!this.data.lastControlNumber || this.data.lastControlNumber < 2462) {
+                    this.data.lastControlNumber = 2461; // Will increment to 2462
+                }
+
+                // Increment for new transaction
+                this.data.lastControlNumber++;
+                const refNumber = `YAMANA${String(this.data.lastControlNumber).padStart(4, '0')}`;
+
+                document.getElementById('ref-number').value = refNumber;
+                this.saveData(); // Save the incremented number
+                return refNumber;
+            },
+
+            /**
+             * Get formatted date string YYYYMMDD
+             */
+            getFormattedDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}${month}${day}`;
+            },
+
+            /**
+             * Setup event listeners
+             */
+            setupEventListeners() {
+                // Navigation
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const section = e.target.dataset.section;
+                        this.navigateTo(section);
+                    });
+                });
+
+                // New transaction form
+                document.getElementById('transaction-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveTransaction();
+                });
+
+                // Search and filters
+                document.getElementById('search-input').addEventListener('input', () => {
+                    this.filterTransactions();
+                });
+
+                document.getElementById('filter-status').addEventListener('change', () => {
+                    this.filterTransactions();
+                });
+
+                document.getElementById('filter-bank').addEventListener('change', () => {
+                    this.filterTransactions();
+                });
+
+                document.getElementById('filter-date-range').addEventListener('change', () => {
+                    this.filterTransactions();
+                });
+
+                // Import file
+                document.getElementById('import-file').addEventListener('change', (e) => {
+                    this.importJSON(e);
+                });
+
+                // Import master data file
+                document.getElementById('import-master-data-file').addEventListener('change', (e) => {
+                    this.importMasterData(e);
+                });
+
+                // Payee selection updates account number in transaction form
+                document.getElementById('payee').addEventListener('change', (e) => {
+                    this.updateAccountNumberFromPayee('payee', 'account-number');
+                });
+
+                // Bank selection updates account number in transaction form
+                document.getElementById('bank').addEventListener('change', (e) => {
+                    this.updateAccountNumberFromPayee('payee', 'account-number');
+                });
+
+                // Request form
+                document.getElementById('request-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveRequest();
+                });
+
+                // Payee selection updates account number in request form
+                document.getElementById('request-payee').addEventListener('change', (e) => {
+                    this.updateAccountNumberFromPayee('request-payee', 'request-account-number');
+                });
+
+                // Bank selection updates account number in request form
+                document.getElementById('request-bank').addEventListener('change', (e) => {
+                    this.updateAccountNumberFromPayee('request-payee', 'request-account-number');
+                });
+
+                // Request search and filters
+                document.getElementById('request-search-input').addEventListener('input', () => {
+                    this.filterRequests();
+                });
+
+                document.getElementById('request-filter-status').addEventListener('change', () => {
+                    this.filterRequests();
+                });
+
+                // No bank account checkbox
+                const noBankAccountCheckbox = document.getElementById('payee-no-bank-account');
+                if (noBankAccountCheckbox) {
+                    noBankAccountCheckbox.addEventListener('change', (e) => {
+                        const bankAccountsSection = document.getElementById('bank-accounts-section');
+                        if (bankAccountsSection) {
+                            bankAccountsSection.style.display = e.target.checked ? 'none' : 'block';
+                        }
+                    });
+                }
+            },
+
+            /**
+             * Navigate to section
+             */
+            navigateTo(section) {
+                // Hide all sections
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+                // Show selected section
+                document.getElementById(section).classList.add('active');
+                document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+                // Reset form when navigating to new transaction
+                if (section === 'new-transaction') {
+                    document.getElementById('transaction-form').reset();
+                    this.generateReferenceNumber();
+                    document.getElementById('trans-date').valueAsDate = new Date();
+                    this.clearSplits();
+                }
+
+                // Refresh data when navigating to transaction history
+                if (section === 'transactions') {
+                    this.filterTransactions();
+                }
+
+                // Update master data tables
+                if (section === 'master-data') {
+                    this.refreshAllTables();
+                }
+
+                // Update backup info
+                if (section === 'backup') {
+                    this.updateBackupInfo();
+                }
+
+                // Refresh requests
+                if (section === 'requests') {
+                    this.filterRequests();
+                }
+
+                // Reset request form
+                if (section === 'new-request') {
+                    document.getElementById('request-form').reset();
+                    const requestDateInput = document.getElementById('request-date');
+                    if (requestDateInput) {
+                        requestDateInput.valueAsDate = new Date();
+                    }
+                }
+            },
+
+            /**
+             * Update account number when bank and/or payee are selected
+             */
+            updateAccountNumberFromPayee(payeeFieldId, accountFieldId) {
+                const payeeName = document.getElementById(payeeFieldId).value;
+                const accountField = document.getElementById(accountFieldId);
+                
+                // Determine which bank field to use based on context
+                let bankFieldId = 'bank';
+                if (payeeFieldId === 'request-payee') {
+                    bankFieldId = 'request-bank';
+                }
+                
+                const selectedBank = document.getElementById(bankFieldId).value;
+                const payee = this.data.payees.find(p => p.name === payeeName);
+                
+                if (payee && selectedBank && payee.bankAccounts) {
+                    // Find account for selected bank
+                    const bankAccount = payee.bankAccounts.find(a => a.bank === selectedBank);
+                    if (bankAccount) {
+                        accountField.value = bankAccount.accountNumber;
+                    } else {
+                        accountField.value = '';
+                    }
+                } else {
+                    accountField.value = '';
+                }
+            },
+
+            // ========================================
+            // TRANSACTION MANAGEMENT
+            // ========================================
+
+            /**
+             * Save new transaction
+             */
+            saveTransaction() {
+                // Check if using splits
+                const splitsContainer = document.getElementById('splits-container');
+                const splitInputs = splitsContainer ? splitsContainer.querySelectorAll('.split-item') : [];
+                const hasSplits = splitInputs.length > 0;
+
+                if (hasSplits) {
+                    this.saveTransactionWithSplits();
+                    return;
+                }
+
+                // Standard single transaction save
+                // Validate required fields
+                const refNumber = document.getElementById('ref-number').value;
+                const transDate = document.getElementById('trans-date').value;
+                const transTime = document.getElementById('trans-time').value;
+                const bank = document.getElementById('bank').value;
+                const payee = document.getElementById('payee').value;
+                const accountNumber = document.getElementById('account-number').value;
+                const amount = parseFloat(document.getElementById('amount').value);
+                const expenseType = document.getElementById('expense-type').value;
+                const plateNumber = document.getElementById('plate-number').value;
+                const status = document.getElementById('status').value;
+                const sourceRequestId = document.getElementById('source-request-id').value;
+
+                if (!transDate || !transTime || !bank || !payee || !amount || !expenseType || !plateNumber) {
+                    this.showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                if (amount <= 0) {
+                    this.showToast('Amount must be greater than zero', 'error');
+                    return;
+                }
+
+                // Check for duplicate reference number
+                if (this.data.transactions.some(t => t.refNumber === refNumber)) {
+                    this.showToast('Reference number already exists', 'error');
+                    return;
+                }
+
+                const transaction = {
+                    id: `trans-${Date.now()}`,
+                    refNumber,
+                    transDate,
+                    transTime,
+                    bank,
+                    controlNumber: document.getElementById('ref-number').value,
+                    payee,
+                    accountNumber,
+                    amount,
+                    expenseType,
+                    plateNumber,
+                    purpose: document.getElementById('purpose').value,
+                    remarks: document.getElementById('remarks').value,
+                    status,
+                    createdAt: new Date().toISOString(),
+                    sourceRequestId: sourceRequestId || null
+                };
+
+                this.data.transactions.push(transaction);
+
+                // If this transaction was created from a request, mark the request as approved
+                if (sourceRequestId) {
+                    const request = this.data.requests.find(r => r.id === sourceRequestId);
+                    if (request) {
+                        request.status = 'Approved';
+                        request.approvedAt = new Date().toISOString();
+                        request.transactionRefNumber = refNumber;
+                    }
+                }
+
+                this.saveData();
+                this.showToast('Transaction saved', 'success');
+
+                // Reset form and navigate
+                document.getElementById('transaction-form').reset();
+                document.getElementById('source-request-id').value = '';
+                this.clearSplits();
+                setTimeout(() => {
+                    this.navigateTo('transactions');
+                }, 500);
+            },
+
+            /**
+             * Save transaction with splits
+             */
+            saveTransactionWithSplits() {
+                const refNumber = document.getElementById('ref-number').value;
+                const transDate = document.getElementById('trans-date').value;
+                const transTime = document.getElementById('trans-time').value;
+                const bank = document.getElementById('bank').value;
+                const expenseType = document.getElementById('expense-type').value;
+                const plateNumber = document.getElementById('plate-number').value;
+                const purpose = document.getElementById('purpose').value;
+                const remarks = document.getElementById('remarks').value;
+                const status = document.getElementById('status').value;
+
+                if (!transDate || !transTime || !bank || !expenseType || !plateNumber) {
+                    this.showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                const splitsContainer = document.getElementById('splits-container');
+                const splitInputs = splitsContainer.querySelectorAll('.split-item');
+
+                if (splitInputs.length === 0) {
+                    this.showToast('Please add at least one split', 'error');
+                    return;
+                }
+
+                let totalAmount = 0;
+                const splits = [];
+
+                // Collect all split data
+                splitInputs.forEach((item, idx) => {
+                    const payee = item.querySelector('.split-payee').value;
+                    const amount = parseFloat(item.querySelector('.split-amount').value) || 0;
+
+                    if (!payee || !amount || amount <= 0) {
+                        this.showToast(`Split ${idx + 1}: Please fill payee and amount`, 'error');
+                        throw new Error('Invalid split');
+                    }
+
+                    const accountNumber = this.getPayeeAccountNumber(payee, bank);
+                    splits.push({ payee, amount, accountNumber });
+                    totalAmount += amount;
+                });
+
+                try {
+                    // Create a transaction for each split with same control number
+                    splits.forEach((split, idx) => {
+                        const refNumber = `${refNumberPrefix}-${String(idx + 1).padStart(6, '0')}`;
+
+                        const transaction = {
+                            id: `trans-${Date.now()}-${idx}`,
+                            refNumber: `${refNumber}-split-${idx + 1}`,
+                            transDate,
+                            transTime,
+                            bank,
+                            controlNumber: refNumber,
+                            payee: split.payee,
+                            accountNumber: split.accountNumber,
+                            amount: split.amount,
+                            expenseType,
+                            plateNumber,
+                            purpose,
+                            remarks: remarks ? `${remarks} (Split ${idx + 1}/${splits.length})` : `Split ${idx + 1}/${splits.length}`,
+                            status,
+                            createdAt: new Date().toISOString(),
+                            sourceRequestId: null
+                        };
+
+                        this.data.transactions.push(transaction);
+                    });
+
+                    this.saveData();
+                    this.showToast(`Split transaction saved (${splits.length} entries, Total: ₱${totalAmount.toFixed(2)})`, 'success');
+
+                    // Reset form and navigate
+                    document.getElementById('transaction-form').reset();
+                    document.getElementById('source-request-id').value = '';
+                    this.clearSplits();
+                    setTimeout(() => {
+                        this.navigateTo('transactions');
+                    }, 500);
+                } catch (error) {
+                    this.showToast('Error saving split transaction: ' + error.message, 'error');
+                }
+            },
+
+            /**
+             * Get account number for a payee from a specific bank
+             */
+            getPayeeAccountNumber(payeeName, bankName) {
+                const payee = this.data.payees.find(p => p.name === payeeName);
+                if (!payee) return '';
+                
+                const bankAccount = payee.bankAccounts.find(ba => ba.bank === bankName);
+                return bankAccount ? bankAccount.accountNumber : '';
+            },
+
+            /**
+             * Add a split transaction row
+             */
+            addSplit() {
+                const container = document.getElementById('splits-container');
+                const splitCount = container.querySelectorAll('.split-item').length;
+
+                const splitHTML = `
+                    <div class="split-item" style="display: grid; grid-template-columns: 2fr 1fr 0.3fr; gap: 1rem; align-items: end; margin-bottom: 1rem; padding: 1rem; background: var(--color-bg-main); border-radius: var(--radius); border-left: 3px solid var(--color-secondary);">
+                        <div>
+                            <label style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem;">Payee <span class="required">*</span></label>
+                            <select class="split-payee" required>
+                                <option value="">-- Select Payee --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem;">Amount <span class="required">*</span></label>
+                            <input type="number" class="split-amount" step="0.01" min="0" placeholder="0.00" required>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="app.removeSplit(this)" style="background-color: #dc3545; color: white; padding: 0.5rem; font-size: 0.9rem;">✕ Remove</button>
+                    </div>
+                `;
+
+                container.insertAdjacentHTML('beforeend', splitHTML);
+
+                // Populate payee dropdown
+                const newPayeeSelect = container.querySelector('.split-item:last-child .split-payee');
+                this.data.payees.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.name;
+                    option.textContent = `${p.name} (${p.category})`;
+                    newPayeeSelect.appendChild(option);
+                });
+
+                // Add event listener for amount changes
+                container.querySelector('.split-item:last-child .split-amount').addEventListener('change', () => this.updateSplitsTotal());
+                container.querySelector('.split-item:last-child .split-payee').addEventListener('change', () => this.updateSplitsTotal());
+
+                this.updateSplitsTotal();
+            },
+
+            /**
+             * Remove a split transaction row
+             */
+            removeSplit(button) {
+                button.closest('.split-item').remove();
+                this.updateSplitsTotal();
+            },
+
+            /**
+             * Update total for splits display
+             */
+            updateSplitsTotal() {
+                const container = document.getElementById('splits-container');
+                const splitAmounts = container.querySelectorAll('.split-amount');
+                let total = 0;
+
+                splitAmounts.forEach(input => {
+                    total += parseFloat(input.value) || 0;
+                });
+
+                document.getElementById('splits-total').textContent = total.toFixed(2);
+            },
+
+            /**
+             * Clear all splits
+             */
+            clearSplits() {
+                const container = document.getElementById('splits-container');
+                if (container) {
+                    container.innerHTML = '';
+                    document.getElementById('splits-total').textContent = '0.00';
+                }
+            },
+
+            /**
+             * Edit transaction
+             */
+            editTransaction(id) {
+                const transaction = this.data.transactions.find(t => t.id === id);
+                if (!transaction) return;
+
+                document.getElementById('edit-trans-id').value = id;
+                document.getElementById('edit-ref-number').value = transaction.refNumber;
+                document.getElementById('edit-control-number').value = transaction.controlNumber || '';
+                document.getElementById('edit-trans-date').value = transaction.transDate || '';
+                document.getElementById('edit-trans-time').value = transaction.transTime || '';
+                document.getElementById('edit-bank').value = transaction.bank;
+                document.getElementById('edit-payee').value = transaction.payee;
+                document.getElementById('edit-account-number').value = transaction.accountNumber || '';
+                document.getElementById('edit-amount').value = transaction.amount;
+                document.getElementById('edit-expense-type').value = transaction.expenseType;
+                document.getElementById('edit-plate-number').value = transaction.plateNumber;
+                document.getElementById('edit-purpose').value = transaction.purpose || '';
+                document.getElementById('edit-remarks').value = transaction.remarks || '';
+                document.getElementById('edit-status').value = transaction.status;
+
+                this.openModal('edit-transaction-modal');
+            },
+
+            /**
+             * Save edited transaction
+             */
+            saveEditedTransaction() {
+                const id = document.getElementById('edit-trans-id').value;
+                const transaction = this.data.transactions.find(t => t.id === id);
+
+                if (!transaction) {
+                    this.showToast('Transaction not found', 'error');
+                    return;
+                }
+
+                // Update all editable fields
+                transaction.controlNumber = document.getElementById('edit-control-number').value;
+                transaction.transDate = document.getElementById('edit-trans-date').value;
+                transaction.transTime = document.getElementById('edit-trans-time').value;
+                transaction.bank = document.getElementById('edit-bank').value;
+                transaction.payee = document.getElementById('edit-payee').value;
+                transaction.accountNumber = document.getElementById('edit-account-number').value;
+                transaction.amount = parseFloat(document.getElementById('edit-amount').value);
+                transaction.expenseType = document.getElementById('edit-expense-type').value;
+                transaction.plateNumber = document.getElementById('edit-plate-number').value;
+                transaction.purpose = document.getElementById('edit-purpose').value;
+                transaction.remarks = document.getElementById('edit-remarks').value;
+                transaction.status = document.getElementById('edit-status').value;
+
+                this.saveData();
+                this.closeModal('edit-transaction-modal');
+                this.showToast('Transaction updated successfully', 'success');
+                this.filterTransactions();
+            },
+
+            /**
+             * View transaction details
+             */
+            viewTransaction(id) {
+                const transaction = this.data.transactions.find(t => t.id === id);
+                if (!transaction) return;
+
+                const content = `
+                    <div style="display: grid; gap: 1rem;">
+                        <div>
+                            <p class="text-muted">Control Number</p>
+                            <p style="font-weight: 600; font-size: 1.1rem;">${transaction.refNumber}</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Date</p>
+                                <p>${transaction.transDate}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Time</p>
+                                <p>${transaction.transTime}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-muted">Bank</p>
+                            <p>${transaction.bank}</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Control Number</p>
+                                <p>${transaction.controlNumber || '-'}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Payee</p>
+                                <p>${transaction.payee}</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Amount</p>
+                                <p style="font-weight: 600;">₱${transaction.amount.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Status</p>
+                                <p><span class="status-badge ${this.getStatusClass(transaction.status)}">${transaction.status}</span></p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Expense Type</p>
+                                <p>${transaction.expenseType}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Plate Number</p>
+                                <p>${transaction.plateNumber}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-muted">Purpose</p>
+                            <p>${transaction.purpose || '-'}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted">Remarks</p>
+                            <p>${transaction.remarks || '-'}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted">Encoded By</p>
+                            <p>${transaction.encodedBy}</p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('view-transaction-content').innerHTML = content;
+                this.openModal('view-transaction-modal');
+            },
+
+            /**
+             * Void transaction
+             */
+            voidTransaction(id) {
+                document.getElementById('void-trans-id').value = id;
+                document.getElementById('void-reason').value = '';
+                this.openModal('void-transaction-modal');
+            },
+
+            /**
+             * Confirm void
+             */
+            confirmVoid() {
+                const id = document.getElementById('void-trans-id').value;
+                const reason = document.getElementById('void-reason').value;
+
+                if (!reason.trim()) {
+                    this.showToast('Please provide a reason for voiding', 'error');
+                    return;
+                }
+
+                const transaction = this.data.transactions.find(t => t.id === id);
+                if (!transaction) return;
+
+                transaction.status = 'VOID';
+                this.data.voidLog.push({
+                    transactionId: id,
+                    refNumber: transaction.refNumber,
+                    voidDate: new Date().toISOString().split('T')[0],
+                    voidTime: new Date().toTimeString().split(' ')[0],
+                    reason
+                });
+
+                this.saveData();
+                this.closeModal('void-transaction-modal');
+                this.showToast('Transaction voided successfully', 'success');
+                this.filterTransactions();
+                this.updateDashboard();
+            },
+
+            // ========================================
+            // MASTER DATA MANAGEMENT
+            // ========================================
+
+            /**
+             * Save plate number
+             */
+            savePlate() {
+                const id = document.getElementById('plate-id').value;
+                const plateNumber = document.getElementById('plate-number-input').value.toUpperCase();
+                const vehicleType = document.getElementById('vehicle-type').value;
+                const assignedDriver = document.getElementById('assigned-driver').value;
+                const status = document.getElementById('plate-status').value;
+
+                if (!plateNumber || !vehicleType) {
+                    this.showToast('Please fill in required fields', 'error');
+                    return;
+                }
+
+                if (id) {
+                    // Edit
+                    const plate = this.data.plates.find(p => p.id === id);
+                    if (plate) {
+                        plate.plateNumber = plateNumber;
+                        plate.vehicleType = vehicleType;
+                        plate.assignedDriver = assignedDriver;
+                        plate.status = status;
+                    }
+                } else {
+                    // Add
+                    this.data.plates.push({
+                        id: `plate-${Date.now()}`,
+                        plateNumber,
+                        vehicleType,
+                        assignedDriver,
+                        status
+                    });
+                }
+
+                this.saveData();
+                this.closeModal('plate-modal');
+                this.showToast('Plate number saved', 'success');
+                this.refreshTable('plates-table-body', this.data.plates, 'plate');
+                this.populateDropdowns();
+            },
+
+            /**
+             * Edit plate
+             */
+            editPlate(id) {
+                const plate = this.data.plates.find(p => p.id === id);
+                if (!plate) return;
+
+                this.openModal('plate-modal');
+                
+                // Set values AFTER opening modal
+                setTimeout(() => {
+                    document.getElementById('plate-modal-title').textContent = 'Edit Plate Number';
+                    document.getElementById('plate-id').value = id;
+                    document.getElementById('plate-number-input').value = plate.plateNumber;
+                    document.getElementById('vehicle-type').value = plate.vehicleType;
+                    document.getElementById('assigned-driver').value = plate.assignedDriver;
+                    document.getElementById('plate-status').value = plate.status;
+                }, 10);
+            },
+
+            /**
+             * Delete plate
+             */
+            deletePlate(id) {
+                if (confirm('Delete this plate number?')) {
+                    this.data.plates = this.data.plates.filter(p => p.id !== id);
+                    this.saveData();
+                    this.showToast('Plate deleted', 'success');
+                    this.refreshTable('plates-table-body', this.data.plates, 'plate');
+                    this.populateDropdowns();
+                }
+            },
+
+            /**
+             * Add bank account to payee
+             */
+            addBankAccount() {
+                const bankSelect = document.getElementById('payee-bank-select');
+                const accountNumberInput = document.getElementById('payee-bank-account-number');
+                
+                if (!bankSelect || !accountNumberInput) return;
+                
+                const bank = bankSelect.value;
+                const accountNumber = accountNumberInput.value;
+
+                if (!bank || !accountNumber) {
+                    this.showToast('Please select bank and enter account number', 'error');
+                    return;
+                }
+
+                // Get current payee ID if editing
+                const payeeId = document.getElementById('payee-id').value;
+                if (!payeeId) {
+                    // For new payees, store temporarily in form
+                    if (!window.tempBankAccounts) {
+                        window.tempBankAccounts = [];
+                    }
+                    
+                    // Check if bank already exists
+                    const existing = window.tempBankAccounts.find(a => a.bank === bank);
+                    if (existing) {
+                        existing.accountNumber = accountNumber;
+                    } else {
+                        window.tempBankAccounts.push({ bank, accountNumber });
+                    }
+                } else {
+                    // For existing payees
+                    const payee = this.data.payees.find(p => p.id === payeeId);
+                    if (payee) {
+                        if (!payee.bankAccounts) {
+                            payee.bankAccounts = [];
+                        }
+                        const existing = payee.bankAccounts.find(a => a.bank === bank);
+                        if (existing) {
+                            existing.accountNumber = accountNumber;
+                        } else {
+                            payee.bankAccounts.push({ bank, accountNumber });
+                        }
+                    }
+                }
+
+                this.displayBankAccounts();
+                bankSelect.value = '';
+                accountNumberInput.value = '';
+            },
+
+            /**
+             * Display bank accounts in payee form
+             */
+            displayBankAccounts() {
+                const list = document.getElementById('bank-accounts-list');
+                if (!list) return;
+                
+                const payeeId = document.getElementById('payee-id').value;
+                
+                let accounts = [];
+                if (payeeId) {
+                    const payee = this.data.payees.find(p => p.id === payeeId);
+                    accounts = payee?.bankAccounts || [];
+                } else {
+                    accounts = window.tempBankAccounts || [];
+                }
+
+                if (accounts.length === 0) {
+                    list.innerHTML = '<p class="text-muted" style="margin: 0;">No bank accounts added yet</p>';
+                    return;
+                }
+
+                list.innerHTML = accounts.map((acc, idx) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: white; border-radius: var(--radius); margin-bottom: 0.5rem;">
+                        <div>
+                            <p style="font-weight: 600; margin: 0;">${acc.bank}</p>
+                            <p style="color: var(--color-text-secondary); margin: 0; font-size: 0.9rem;">Account: ${acc.accountNumber}</p>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-small" onclick="app.removeBankAccount(${idx})" style="margin: 0;">Remove</button>
+                    </div>
+                `).join('');
+            },
+
+            /**
+             * Remove bank account from payee
+             */
+            removeBankAccount(index) {
+                const payeeId = document.getElementById('payee-id').value;
+                
+                if (payeeId) {
+                    const payee = this.data.payees.find(p => p.id === payeeId);
+                    if (payee && payee.bankAccounts) {
+                        payee.bankAccounts.splice(index, 1);
+                    }
+                } else {
+                    if (window.tempBankAccounts) {
+                        window.tempBankAccounts.splice(index, 1);
+                    }
+                }
+
+                this.displayBankAccounts();
+            },
+
+            /**
+             * Save payee
+             */
+            savePayee() {
+                const id = document.getElementById('payee-id').value;
+                const name = document.getElementById('payee-name').value;
+                const category = document.getElementById('payee-category').value;
+                const notes = document.getElementById('payee-notes').value;
+                const noBankAccount = document.getElementById('payee-no-bank-account')?.checked || false;
+
+                if (!name || !category) {
+                    this.showToast('Please fill in required fields', 'error');
+                    return;
+                }
+
+                // Get bank accounts
+                let bankAccounts = [];
+                if (!noBankAccount) {
+                    if (id) {
+                        const payee = this.data.payees.find(p => p.id === id);
+                        bankAccounts = payee?.bankAccounts || [];
+                    } else {
+                        bankAccounts = window.tempBankAccounts || [];
+                    }
+
+                    if (bankAccounts.length === 0) {
+                        this.showToast('Please add at least one bank account or select "No Bank Account"', 'error');
+                        return;
+                    }
+                }
+
+                if (id) {
+                    // Edit
+                    const payee = this.data.payees.find(p => p.id === id);
+                    if (payee) {
+                        payee.name = name;
+                        payee.category = category;
+                        payee.notes = notes;
+                        payee.noBankAccount = noBankAccount;
+                        payee.bankAccounts = noBankAccount ? [] : bankAccounts;
+                    }
+                } else {
+                    // Add
+                    this.data.payees.push({
+                        id: `payee-${Date.now()}`,
+                        name,
+                        category,
+                        noBankAccount,
+                        bankAccounts: noBankAccount ? [] : bankAccounts,
+                        notes
+                    });
+                    window.tempBankAccounts = [];
+                }
+
+                this.saveData();
+                this.closeModal('payee-modal');
+                this.showToast('Payee saved', 'success');
+                this.refreshTable('payees-table-body', this.data.payees, 'payee');
+                this.populateDropdowns();
+            },
+
+            /**
+             * Edit payee
+             */
+            editPayee(id) {
+                const payee = this.data.payees.find(p => p.id === id);
+                if (!payee) return;
+
+                this.openModal('payee-modal');
+                
+                // Set values AFTER opening modal
+                setTimeout(() => {
+                    const payeeTitleEl = document.getElementById('payee-modal-title');
+                    const payeeIdInput = document.getElementById('payee-id');
+                    const payeeNameInput = document.getElementById('payee-name');
+                    const payeeCategorySelect = document.getElementById('payee-category');
+                    const payeeNotesInput = document.getElementById('payee-notes');
+                    const noBankAccountCheckbox = document.getElementById('payee-no-bank-account');
+                    const bankAccountsSection = document.getElementById('bank-accounts-section');
+                    const bankSelect = document.getElementById('payee-bank-select');
+
+                    if (!payeeIdInput || !payeeTitleEl || !payeeNameInput || !payeeCategorySelect || !payeeNotesInput) return;
+
+                    payeeTitleEl.textContent = 'Edit Payee';
+                    payeeIdInput.value = id;
+                    payeeNameInput.value = payee.name;
+                    payeeCategorySelect.value = payee.category;
+                    payeeNotesInput.value = payee.notes || '';
+
+                    // Handle no bank account checkbox
+                    if (noBankAccountCheckbox) {
+                        noBankAccountCheckbox.checked = payee.noBankAccount || false;
+                        if (bankAccountsSection) {
+                            bankAccountsSection.style.display = (payee.noBankAccount || false) ? 'none' : 'block';
+                        }
+                    }
+
+                    // Populate bank select
+                    if (bankSelect) {
+                        bankSelect.innerHTML = '<option value="">-- Select Bank --</option>';
+                        this.data.banks.forEach(b => {
+                            const option = document.createElement('option');
+                            option.value = b.name;
+                            option.textContent = b.name;
+                            bankSelect.appendChild(option);
+                        });
+                    }
+
+                    // Display existing bank accounts
+                    window.tempBankAccounts = [];
+                    this.displayBankAccounts();
+                }, 10);
+            },
+
+            /**
+             * Delete payee
+             */
+            deletePayee(id) {
+                if (confirm('Delete this payee?')) {
+                    this.data.payees = this.data.payees.filter(p => p.id !== id);
+                    this.saveData();
+                    this.showToast('Payee deleted', 'success');
+                    this.refreshTable('payees-table-body', this.data.payees, 'payee');
+                    this.populateDropdowns();
+                }
+            },
+
+            /**
+             * Save expense type
+             */
+            savePayeeCategory() {
+                const id = document.getElementById('payee-category-id').value;
+                const name = document.getElementById('payee-category-input').value;
+
+                if (!name) {
+                    this.showToast('Please enter category name', 'error');
+                    return;
+                }
+
+                if (id) {
+                    // Edit
+                    const category = this.data.payeeCategories.find(c => c.id === id);
+                    if (category) {
+                        category.name = name;
+                    }
+                } else {
+                    // Add
+                    this.data.payeeCategories.push({
+                        id: `category-${Date.now()}`,
+                        name
+                    });
+                }
+
+                this.saveData();
+                this.closeModal('payee-category-modal');
+                this.showToast('Category saved', 'success');
+                this.refreshTable('payee-categories-table-body', this.data.payeeCategories, 'category');
+                this.populateDropdowns();
+                
+                // Reset form
+                document.getElementById('payee-category-id').value = '';
+                document.getElementById('payee-category-input').value = '';
+                document.getElementById('payee-category-modal-title').textContent = 'Add Payee Category';
+            },
+
+            /**
+             * Edit payee category
+             */
+            editPayeeCategory(id) {
+                const category = this.data.payeeCategories.find(c => c.id === id);
+                if (!category) return;
+
+                this.openModal('payee-category-modal');
+                
+                // Set values AFTER opening modal
+                setTimeout(() => {
+                    document.getElementById('payee-category-modal-title').textContent = 'Edit Payee Category';
+                    document.getElementById('payee-category-id').value = id;
+                    document.getElementById('payee-category-input').value = category.name;
+                }, 10);
+            },
+
+            /**
+             * Delete payee category
+             */
+            deletePayeeCategory(id) {
+                if (confirm('Delete this category?')) {
+                    this.data.payeeCategories = this.data.payeeCategories.filter(c => c.id !== id);
+                    this.saveData();
+                    this.showToast('Category deleted', 'success');
+                    this.refreshTable('payee-categories-table-body', this.data.payeeCategories, 'category');
+                    this.populateDropdowns();
+                }
+            },
+
+            /**
+             * Save expense type
+             */
+            saveExpenseType() {
+                const id = document.getElementById('expense-type-id').value;
+                const name = document.getElementById('expense-type-input').value;
+
+                if (!name) {
+                    this.showToast('Please enter expense type', 'error');
+                    return;
+                }
+
+                if (id) {
+                    // Edit
+                    const expense = this.data.expenseTypes.find(e => e.id === id);
+                    if (expense) {
+                        expense.name = name;
+                    }
+                } else {
+                    // Add
+                    this.data.expenseTypes.push({
+                        id: `expense-${Date.now()}`,
+                        name
+                    });
+                }
+
+                this.saveData();
+                this.closeModal('expense-type-modal');
+                this.showToast('Expense type saved', 'success');
+                this.refreshTable('expense-types-table-body', this.data.expenseTypes, 'expense');
+                this.populateDropdowns();
+            },
+
+            /**
+             * Edit expense type
+             */
+            editExpenseType(id) {
+                const expense = this.data.expenseTypes.find(e => e.id === id);
+                if (!expense) return;
+
+                this.openModal('expense-type-modal');
+                
+                // Set values AFTER opening modal
+                setTimeout(() => {
+                    document.getElementById('expense-type-modal-title').textContent = 'Edit Expense Type';
+                    document.getElementById('expense-type-id').value = id;
+                    document.getElementById('expense-type-input').value = expense.name;
+                }, 10);
+            },
+
+            /**
+             * Delete expense type
+             */
+            deleteExpenseType(id) {
+                if (confirm('Delete this expense type?')) {
+                    this.data.expenseTypes = this.data.expenseTypes.filter(e => e.id !== id);
+                    this.saveData();
+                    this.showToast('Expense type deleted', 'success');
+                    this.refreshTable('expense-types-table-body', this.data.expenseTypes, 'expense');
+                    this.populateDropdowns();
+                }
+            },
+
+            /**
+             * Save bank
+             */
+            saveBank() {
+                const id = document.getElementById('bank-id').value;
+                const name = document.getElementById('bank-name').value;
+
+                if (!name) {
+                    this.showToast('Please enter bank name', 'error');
+                    return;
+                }
+
+                if (id) {
+                    // Edit
+                    const bank = this.data.banks.find(b => b.id === id);
+                    if (bank) {
+                        bank.name = name;
+                    }
+                } else {
+                    // Add
+                    this.data.banks.push({
+                        id: `bank-${Date.now()}`,
+                        name
+                    });
+                }
+
+                this.saveData();
+                this.closeModal('bank-modal');
+                this.showToast('Bank saved', 'success');
+                this.refreshTable('banks-table-body', this.data.banks, 'bank');
+                this.populateDropdowns();
+            },
+
+            /**
+             * Edit bank
+             */
+            editBank(id) {
+                const bank = this.data.banks.find(b => b.id === id);
+                if (!bank) return;
+
+                this.openModal('bank-modal');
+                
+                // Set values AFTER opening modal
+                setTimeout(() => {
+                    document.getElementById('bank-modal-title').textContent = 'Edit Bank';
+                    document.getElementById('bank-id').value = id;
+                    document.getElementById('bank-name').value = bank.name;
+                }, 10);
+            },
+
+            /**
+             * Delete bank
+             */
+            deleteBank(id) {
+                if (confirm('Delete this bank?')) {
+                    this.data.banks = this.data.banks.filter(b => b.id !== id);
+                    this.saveData();
+                    this.showToast('Bank deleted', 'success');
+                    this.refreshTable('banks-table-body', this.data.banks, 'bank');
+                    this.populateDropdowns();
+                }
+            },
+
+            // ========================================
+            // REQUEST MANAGEMENT
+            // ========================================
+
+            /**
+             * Save new request
+             */
+            saveRequest() {
+                const requestDate = document.getElementById('request-date').value;
+                const requestBy = document.getElementById('request-by').value;
+                const bank = document.getElementById('request-bank').value;
+                const payee = document.getElementById('request-payee').value;
+                const accountNumber = document.getElementById('request-account-number').value;
+                const amount = parseFloat(document.getElementById('request-amount').value);
+                const expenseType = document.getElementById('request-expense-type').value;
+                const plateNumber = document.getElementById('request-plate-number').value;
+                const purpose = document.getElementById('request-purpose').value;
+                const remarks = document.getElementById('request-remarks').value;
+
+                if (!requestDate || !requestBy || !bank || !payee || !amount || !expenseType || !plateNumber || !purpose) {
+                    this.showToast('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                if (amount <= 0) {
+                    this.showToast('Amount must be greater than zero', 'error');
+                    return;
+                }
+
+                const request = {
+                    id: `req-${Date.now()}`,
+                    requestDate,
+                    requestBy,
+                    bank,
+                    payee,
+                    accountNumber,
+                    amount,
+                    expenseType,
+                    plateNumber,
+                    purpose,
+                    remarks,
+                    status: 'Pending',
+                    createdAt: new Date().toISOString()
+                };
+
+                this.data.requests.push(request);
+                this.saveData();
+                this.showToast('Request submitted successfully', 'success');
+
+                // Reset form and navigate
+                document.getElementById('request-form').reset();
+                setTimeout(() => {
+                    this.navigateTo('requests');
+                }, 500);
+            },
+
+            /**
+             * Approve request - opens transaction form pre-filled with request data
+             */
+            approveRequest(requestId) {
+                const request = this.data.requests.find(r => r.id === requestId);
+                if (!request) {
+                    this.showToast('Request not found', 'error');
+                    return;
+                }
+
+                // Navigate to new transaction first
+                this.navigateTo('new-transaction');
+
+                // Pre-fill form data after navigation (with delay to ensure form is ready)
+                setTimeout(() => {
+                    // Store the request ID so we know which request this transaction is from
+                    document.getElementById('source-request-id').value = requestId;
+
+                    // Pre-fill transaction form with request data
+                    document.getElementById('trans-date').valueAsDate = new Date();
+                    document.getElementById('trans-time').value = new Date().toTimeString().slice(0, 5);
+                    document.getElementById('bank').value = request.bank;
+                    document.getElementById('payee').value = request.payee;
+                    
+                    // Trigger payee change event to update account number
+                    const payeeSelect = document.getElementById('payee');
+                    if (payeeSelect) {
+                        payeeSelect.dispatchEvent(new Event('change'));
+                    }
+                    
+                    document.getElementById('amount').value = request.amount;
+                    document.getElementById('expense-type').value = request.expenseType;
+                    document.getElementById('plate-number').value = request.plateNumber;
+                    document.getElementById('purpose').value = request.purpose;
+                    document.getElementById('remarks').value = request.remarks ? request.remarks + ` (From Request: ${request.id})` : `From Request: ${request.id}`;
+                    document.getElementById('status').value = 'Successful';
+
+                    this.showToast('Request data pre-filled. Review and edit if needed, then save to approve.', 'info');
+                }, 100);
+            },
+
+            /**
+             * Cancel transaction form - return to requests if from request, otherwise to transactions
+             */
+            cancelTransactionForm() {
+                const sourceRequestId = document.getElementById('source-request-id').value;
+                document.getElementById('transaction-form').reset();
+                document.getElementById('source-request-id').value = '';
+                
+                if (sourceRequestId) {
+                    this.navigateTo('requests');
+                    this.showToast('Request approval cancelled', 'warning');
+                } else {
+                    this.navigateTo('transactions');
+                }
+            },
+
+            /**
+             * Reject request
+             */
+            rejectRequest(requestId) {
+                const request = this.data.requests.find(r => r.id === requestId);
+                if (!request) return;
+
+                request.status = 'Rejected';
+                request.rejectedAt = new Date().toISOString();
+                this.saveData();
+                this.showToast('Request rejected', 'success');
+                this.filterRequests();
+            },
+
+            /**
+             * Filter requests
+             */
+            filterRequests() {
+                const searchTerm = document.getElementById('request-search-input').value.toLowerCase();
+                const statusFilter = document.getElementById('request-filter-status').value;
+
+                let filtered = this.data.requests.filter(r => {
+                    if (searchTerm) {
+                        const searchText = `${r.id} ${r.requestBy} ${r.payee}`.toLowerCase();
+                        if (!searchText.includes(searchTerm)) return false;
+                    }
+
+                    if (statusFilter && r.status !== statusFilter) return false;
+
+                    return true;
+                });
+
+                // Sort by date descending
+                filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                this.renderRequests(filtered);
+            },
+
+            /**
+             * Render requests table
+             */
+            renderRequests(requests) {
+                const tbody = document.getElementById('requests-table-body');
+                tbody.innerHTML = '';
+
+                if (requests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No requests found</td></tr>';
+                    return;
+                }
+
+                requests.forEach(r => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>${r.id}</strong></td>
+                        <td>${r.requestDate}</td>
+                        <td>${r.requestBy}</td>
+                        <td>${r.payee}</td>
+                        <td style="text-align: right; font-weight: 600;">₱${r.amount.toFixed(2)}</td>
+                        <td>${r.expenseType}</td>
+                        <td><span class="status-badge ${this.getStatusClass(r.status)}">${r.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary btn-small" onclick="app.viewRequest('${r.id}')">View</button>
+                                ${r.status === 'Pending' ? `
+                                    <button class="btn btn-success btn-small" onclick="app.approveRequest('${r.id}')">Approve</button>
+                                    <button class="btn btn-danger btn-small" onclick="app.rejectRequest('${r.id}')">Reject</button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    `;
+                });
+            },
+
+            /**
+             * View request details
+             */
+            viewRequest(id) {
+                const request = this.data.requests.find(r => r.id === id);
+                if (!request) return;
+
+                const content = `
+                    <div style="display: grid; gap: 1rem;">
+                        <div>
+                            <p class="text-muted">Request ID</p>
+                            <p style="font-weight: 600; font-size: 1.1rem;">${request.id}</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Request Date</p>
+                                <p>${request.requestDate}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Requested By</p>
+                                <p>${request.requestBy}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-muted">Bank</p>
+                            <p>${request.bank}</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Account Name</p>
+                                <p>${request.payee}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Account Number</p>
+                                <p>${request.accountNumber || '-'}</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Amount</p>
+                                <p style="font-weight: 600;">₱${request.amount.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Status</p>
+                                <p><span class="status-badge ${this.getStatusClass(request.status)}">${request.status}</span></p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Expense Type</p>
+                                <p>${request.expenseType}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Plate Number</p>
+                                <p>${request.plateNumber}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-muted">Purpose</p>
+                            <p>${request.purpose || '-'}</p>
+                        </div>
+                        <div>
+                            <p class="text-muted">Remarks</p>
+                            <p>${request.remarks || '-'}</p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('view-transaction-content').innerHTML = content;
+                this.openModal('view-transaction-modal');
+            },
+
+            /**
+             * Filter transactions based on search and filters
+             */
+            filterTransactions() {
+                const searchTerm = document.getElementById('search-input').value.toLowerCase();
+                const statusFilter = document.getElementById('filter-status').value;
+                const bankFilter = document.getElementById('filter-bank').value;
+                const dateRangeFilter = document.getElementById('filter-date-range').value;
+
+                let filtered = this.data.transactions.filter(t => {
+                    // Search filter
+                    if (searchTerm) {
+                        const searchableText = `
+                            ${t.refNumber}
+                            ${t.controlNumber}
+                            ${t.payee}
+                            ${t.plateNumber}
+                            ${t.bank}
+                            ${t.expenseType}
+                            ${t.amount}
+                            ${t.remarks}
+                        `.toLowerCase();
+                        if (!searchableText.includes(searchTerm)) return false;
+                    }
+
+                    // Status filter
+                    if (statusFilter && t.status !== statusFilter) return false;
+
+                    // Bank filter
+                    if (bankFilter && t.bank !== bankFilter) return false;
+
+                    // Date range filter
+                    if (dateRangeFilter) {
+                        const transDate = new Date(t.transDate);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+
+                        switch (dateRangeFilter) {
+                            case 'today':
+                                if (transDate < today) return false;
+                                break;
+                            case 'week':
+                                const weekAgo = new Date(today);
+                                weekAgo.setDate(weekAgo.getDate() - 7);
+                                if (transDate < weekAgo) return false;
+                                break;
+                            case 'month':
+                                const monthAgo = new Date(today);
+                                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                                if (transDate < monthAgo) return false;
+                                break;
+                            case 'year':
+                                const yearAgo = new Date(today);
+                                yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+                                if (transDate < yearAgo) return false;
+                                break;
+                        }
+                    }
+
+                    return true;
+                });
+
+                // Sort by date descending
+                filtered.sort((a, b) => {
+                    const dateA = new Date(`${a.transDate}T${a.transTime}`);
+                    const dateB = new Date(`${b.transDate}T${b.transTime}`);
+                    return dateB - dateA;
+                });
+
+                this.renderTransactions(filtered);
+            },
+
+            /**
+             * Render transactions table
+             */
+            renderTransactions(transactions) {
+                const tbody = document.getElementById('transactions-table-body');
+                tbody.innerHTML = '';
+
+                if (transactions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted">No transactions found</td></tr>';
+                    return;
+                }
+
+                transactions.forEach(t => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>${t.refNumber}</strong></td>
+                        <td>${t.transDate}</td>
+                        <td>${t.transTime}</td>
+                        <td>${t.bank}</td>
+                        <td>${t.controlNumber || '-'}</td>
+                        <td>${t.payee}</td>
+                        <td>${t.plateNumber}</td>
+                        <td>${t.expenseType}</td>
+                        <td style="text-align: right; font-weight: 600;">₱${t.amount.toFixed(2)}</td>
+                        <td><span class="status-badge ${this.getStatusClass(t.status)}">${t.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary btn-small" onclick="app.viewTransaction('${t.id}')">View</button>
+                                ${t.status !== 'VOID' ? `<button class="btn btn-secondary btn-small" onclick="app.editTransaction('${t.id}')">Edit</button>` : ''}
+                                ${t.status !== 'VOID' ? `<button class="btn btn-secondary btn-small" onclick="app.voidTransaction('${t.id}')">Void</button>` : ''}
+                            </div>
+                        </td>
+                    `;
+                });
+            },
+
+            // ========================================
+            // REPORTING
+            // ========================================
+
+            /**
+             * Generate reports
+             */
+            generateReport(type) {
+                let report = '';
+                let transactions = [...this.data.transactions];
+
+                switch (type) {
+                    case 'daily':
+                        report = this.generateDailyReport(transactions);
+                        break;
+                    case 'weekly':
+                        report = this.generateWeeklyReport(transactions);
+                        break;
+                    case 'monthly':
+                        report = this.generateMonthlyReport(transactions);
+                        break;
+                    case 'annual':
+                        report = this.generateAnnualReport(transactions);
+                        break;
+                    case 'by-plate':
+                        report = this.generateByPlateReport(transactions);
+                        break;
+                    case 'by-payee':
+                        report = this.generateByPayeeReport(transactions);
+                        break;
+                    case 'by-expense':
+                        report = this.generateByExpenseReport(transactions);
+                        break;
+                    case 'by-bank':
+                        report = this.generateByBankReport(transactions);
+                        break;
+                    case 'failed':
+                        report = this.generateFailedReport(transactions);
+                        break;
+                    case 'voided':
+                        report = this.generateVoidedReport(transactions);
+                        break;
+                    case 'pending':
+                        report = this.generatePendingReport(transactions);
+                        break;
+                }
+
+                document.getElementById('report-content').innerHTML = report;
+                document.getElementById('report-output').style.display = 'block';
+            },
+
+            /**
+             * Generate daily report
+             */
+            generateDailyReport(transactions) {
+                const today = this.getFormattedDate(new Date());
+                const todayTrans = transactions.filter(t => t.transDate.replace(/-/g, '') === today);
+                const total = todayTrans.reduce((sum, t) => sum + t.amount, 0);
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Daily Summary Report - ${new Date().toLocaleDateString()}</h3>
+                        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Total Transactions</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">${todayTrans.length}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Total Amount</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">₱${total.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Successful</p>
+                                <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-success);">${todayTrans.filter(t => t.status === 'Successful').length}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Pending</p>
+                                <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-pending);">${todayTrans.filter(t => t.status === 'Pending').length}</p>
+                            </div>
+                        </div>
+                        <table style="width: 100%; margin-top: 2rem; border-collapse: collapse;">
+                            <thead style="background: var(--color-primary); color: white;">
+                                <tr>
+                                    <th style="padding: 0.75rem; text-align: left;">Ref #</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Time</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Payee</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Amount</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${todayTrans.map(t => `
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <td style="padding: 0.75rem;">${t.refNumber}</td>
+                                        <td style="padding: 0.75rem;">${t.transTime}</td>
+                                        <td style="padding: 0.75rem;">${t.payee}</td>
+                                        <td style="padding: 0.75rem; text-align: right;">₱${t.amount.toFixed(2)}</td>
+                                        <td style="padding: 0.75rem;"><span class="status-badge ${this.getStatusClass(t.status)}">${t.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate weekly report
+             */
+            generateWeeklyReport(transactions) {
+                const today = new Date();
+                const weekAgo = new Date(today);
+                weekAgo.setDate(weekAgo.getDate() - 7);
+
+                const weekTrans = transactions.filter(t => {
+                    const tDate = new Date(t.transDate);
+                    return tDate >= weekAgo && tDate <= today;
+                });
+
+                const total = weekTrans.reduce((sum, t) => sum + t.amount, 0);
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Weekly Summary Report</h3>
+                        <p class="text-muted">${weekAgo.toLocaleDateString()} - ${today.toLocaleDateString()}</p>
+                        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Total Transactions</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">${weekTrans.length}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Total Amount</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">₱${total.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate monthly report
+             */
+            generateMonthlyReport(transactions) {
+                const today = new Date();
+                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+                const monthTrans = transactions.filter(t => {
+                    const tDate = new Date(t.transDate);
+                    return tDate.getFullYear() === today.getFullYear() &&
+                        tDate.getMonth() === today.getMonth();
+                });
+
+                const total = monthTrans.reduce((sum, t) => sum + t.amount, 0);
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Monthly Summary Report - ${monthStart.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</h3>
+                        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Total Transactions</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">${monthTrans.length}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Total Amount</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">₱${total.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate annual report
+             */
+            generateAnnualReport(transactions) {
+                const today = new Date();
+                const year = today.getFullYear();
+
+                const yearTrans = transactions.filter(t => {
+                    const tDate = new Date(t.transDate);
+                    return tDate.getFullYear() === year;
+                });
+
+                const total = yearTrans.reduce((sum, t) => sum + t.amount, 0);
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Annual Summary Report - ${year}</h3>
+                        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Total Transactions</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">${yearTrans.length}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Total Amount</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">₱${total.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate by plate report
+             */
+            generateByPlateReport(transactions) {
+                const byPlate = {};
+                transactions.forEach(t => {
+                    if (!byPlate[t.plateNumber]) {
+                        byPlate[t.plateNumber] = { count: 0, total: 0 };
+                    }
+                    byPlate[t.plateNumber].count++;
+                    byPlate[t.plateNumber].total += t.amount;
+                });
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Expenses by Plate Number</h3>
+                        <table style="width: 100%; margin-top: 1.5rem; border-collapse: collapse;">
+                            <thead style="background: var(--color-primary); color: white;">
+                                <tr>
+                                    <th style="padding: 0.75rem; text-align: left;">Plate Number</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Count</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(byPlate).map(([plate, data]) => `
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <td style="padding: 0.75rem; font-weight: 600;">${plate}</td>
+                                        <td style="padding: 0.75rem; text-align: right;">${data.count}</td>
+                                        <td style="padding: 0.75rem; text-align: right; font-weight: 600;">₱${data.total.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate by payee report
+             */
+            generateByPayeeReport(transactions) {
+                const byPayee = {};
+                transactions.forEach(t => {
+                    if (!byPayee[t.payee]) {
+                        byPayee[t.payee] = { count: 0, total: 0 };
+                    }
+                    byPayee[t.payee].count++;
+                    byPayee[t.payee].total += t.amount;
+                });
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Expenses by Payee</h3>
+                        <table style="width: 100%; margin-top: 1.5rem; border-collapse: collapse;">
+                            <thead style="background: var(--color-primary); color: white;">
+                                <tr>
+                                    <th style="padding: 0.75rem; text-align: left;">Payee</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Count</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(byPayee).map(([payee, data]) => `
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <td style="padding: 0.75rem; font-weight: 600;">${payee}</td>
+                                        <td style="padding: 0.75rem; text-align: right;">${data.count}</td>
+                                        <td style="padding: 0.75rem; text-align: right; font-weight: 600;">₱${data.total.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate by expense type report
+             */
+            generateByExpenseReport(transactions) {
+                const byExpense = {};
+                transactions.forEach(t => {
+                    if (!byExpense[t.expenseType]) {
+                        byExpense[t.expenseType] = { count: 0, total: 0 };
+                    }
+                    byExpense[t.expenseType].count++;
+                    byExpense[t.expenseType].total += t.amount;
+                });
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Expenses by Type</h3>
+                        <table style="width: 100%; margin-top: 1.5rem; border-collapse: collapse;">
+                            <thead style="background: var(--color-primary); color: white;">
+                                <tr>
+                                    <th style="padding: 0.75rem; text-align: left;">Expense Type</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Count</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(byExpense).map(([expense, data]) => `
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <td style="padding: 0.75rem; font-weight: 600;">${expense}</td>
+                                        <td style="padding: 0.75rem; text-align: right;">${data.count}</td>
+                                        <td style="padding: 0.75rem; text-align: right; font-weight: 600;">₱${data.total.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate by bank report
+             */
+            generateByBankReport(transactions) {
+                const byBank = {};
+                transactions.forEach(t => {
+                    if (!byBank[t.bank]) {
+                        byBank[t.bank] = { count: 0, total: 0 };
+                    }
+                    byBank[t.bank].count++;
+                    byBank[t.bank].total += t.amount;
+                });
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Expenses by Bank</h3>
+                        <table style="width: 100%; margin-top: 1.5rem; border-collapse: collapse;">
+                            <thead style="background: var(--color-primary); color: white;">
+                                <tr>
+                                    <th style="padding: 0.75rem; text-align: left;">Bank</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Count</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(byBank).map(([bank, data]) => `
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <td style="padding: 0.75rem; font-weight: 600;">${bank}</td>
+                                        <td style="padding: 0.75rem; text-align: right;">${data.count}</td>
+                                        <td style="padding: 0.75rem; text-align: right; font-weight: 600;">₱${data.total.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate failed transactions report
+             */
+            generateFailedReport(transactions) {
+                const failed = transactions.filter(t => t.status === 'Failed');
+                const total = failed.reduce((sum, t) => sum + t.amount, 0);
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Failed Transactions Report</h3>
+                        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Total Failed</p>
+                                <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-failed);">${failed.length}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Total Amount</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">₱${total.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <table style="width: 100%; margin-top: 1.5rem; border-collapse: collapse;">
+                            <thead style="background: var(--color-primary); color: white;">
+                                <tr>
+                                    <th style="padding: 0.75rem; text-align: left;">Ref #</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Date</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Payee</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${failed.map(t => `
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <td style="padding: 0.75rem; font-weight: 600;">${t.refNumber}</td>
+                                        <td style="padding: 0.75rem;">${t.transDate}</td>
+                                        <td style="padding: 0.75rem;">${t.payee}</td>
+                                        <td style="padding: 0.75rem; text-align: right;">₱${t.amount.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate voided transactions report
+             */
+            generateVoidedReport(transactions) {
+                const voided = transactions.filter(t => t.status === 'VOID');
+                const total = voided.reduce((sum, t) => sum + t.amount, 0);
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Voided Transactions Report</h3>
+                        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Total Voided</p>
+                                <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-void);">${voided.length}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Total Amount</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">₱${total.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <table style="width: 100%; margin-top: 1.5rem; border-collapse: collapse;">
+                            <thead style="background: var(--color-primary); color: white;">
+                                <tr>
+                                    <th style="padding: 0.75rem; text-align: left;">Ref #</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Date</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Payee</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${voided.map(t => `
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <td style="padding: 0.75rem; font-weight: 600;">${t.refNumber}</td>
+                                        <td style="padding: 0.75rem;">${t.transDate}</td>
+                                        <td style="padding: 0.75rem;">${t.payee}</td>
+                                        <td style="padding: 0.75rem; text-align: right;">₱${t.amount.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            /**
+             * Generate pending transactions report
+             */
+            generatePendingReport(transactions) {
+                const pending = transactions.filter(t => t.status === 'Pending');
+                const total = pending.reduce((sum, t) => sum + t.amount, 0);
+
+                return `
+                    <div style="padding: 1.5rem;">
+                        <h3>Pending Transactions Report</h3>
+                        <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                            <div>
+                                <p class="text-muted">Total Pending</p>
+                                <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-pending);">${pending.length}</p>
+                            </div>
+                            <div>
+                                <p class="text-muted">Total Amount</p>
+                                <p style="font-size: 1.5rem; font-weight: 700;">₱${total.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <table style="width: 100%; margin-top: 1.5rem; border-collapse: collapse;">
+                            <thead style="background: var(--color-primary); color: white;">
+                                <tr>
+                                    <th style="padding: 0.75rem; text-align: left;">Ref #</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Date</th>
+                                    <th style="padding: 0.75rem; text-align: left;">Payee</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${pending.map(t => `
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <td style="padding: 0.75rem; font-weight: 600;">${t.refNumber}</td>
+                                        <td style="padding: 0.75rem;">${t.transDate}</td>
+                                        <td style="padding: 0.75rem;">${t.payee}</td>
+                                        <td style="padding: 0.75rem; text-align: right;">₱${t.amount.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            },
+
+            // ========================================
+            // BACKUP & EXPORT
+            // ========================================
+
+            /**
+             * Export data as JSON
+             */
+            exportJSON() {
+                const dataStr = JSON.stringify(this.data, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `yamana-transactions-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                this.showToast('Data exported successfully', 'success');
+            },
+
+            /**
+             * Export only master data
+             */
+            exportMasterData() {
+                const masterData = {
+                    payees: this.data.payees,
+                    plates: this.data.plates,
+                    expenseTypes: this.data.expenseTypes,
+                    banks: this.data.banks
+                };
+
+                const dataStr = JSON.stringify(masterData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `yamana-master-data-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                this.showToast('Master data exported successfully', 'success');
+            },
+
+            /**
+             * Import JSON data
+             */
+            importJSON(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        
+                        // Handle control number continuation
+                        if (imported.lastControlNumber) {
+                            this.data.lastControlNumber = imported.lastControlNumber;
+                        }
+                        
+                        // Merge imported transactions with existing
+                        if (imported.transactions && Array.isArray(imported.transactions)) {
+                            this.data.transactions = [
+                                ...imported.transactions,
+                                ...this.data.transactions
+                            ];
+                        }
+                        
+                        // Merge other entities (avoid duplicates by ID)
+                        if (imported.plates && Array.isArray(imported.plates)) {
+                            const merged = new Map();
+                            [...imported.plates, ...this.data.plates].forEach(p => merged.set(p.id, p));
+                            this.data.plates = Array.from(merged.values());
+                        }
+                        
+                        if (imported.payees && Array.isArray(imported.payees)) {
+                            const merged = new Map();
+                            [...imported.payees, ...this.data.payees].forEach(p => merged.set(p.id, p));
+                            this.data.payees = Array.from(merged.values());
+                        }
+                        
+                        if (imported.expenseTypes && Array.isArray(imported.expenseTypes)) {
+                            const merged = new Map();
+                            [...imported.expenseTypes, ...this.data.expenseTypes].forEach(e => merged.set(e.id, e));
+                            this.data.expenseTypes = Array.from(merged.values());
+                        }
+                        
+                        if (imported.banks && Array.isArray(imported.banks)) {
+                            const merged = new Map();
+                            [...imported.banks, ...this.data.banks].forEach(b => merged.set(b.id, b));
+                            this.data.banks = Array.from(merged.values());
+                        }
+                        
+                        this.saveData();
+                        this.showToast(`Data imported successfully (${imported.transactions?.length || 0} transactions). Control numbers will continue from last imported.`, 'success');
+                        this.updateDashboard();
+                        this.refreshAllTables();
+                    } catch (error) {
+                        this.showToast('Error importing data: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            },
+
+            /**
+             * Import only master data (payees, plates, expense types, banks)
+             */
+            importMasterData(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        
+                        let importedCount = 0;
+
+                        // Merge payees (avoid duplicates by ID)
+                        if (imported.payees && Array.isArray(imported.payees)) {
+                            const merged = new Map();
+                            [...imported.payees, ...this.data.payees].forEach(p => merged.set(p.id, p));
+                            this.data.payees = Array.from(merged.values());
+                            importedCount += imported.payees.length;
+                        }
+
+                        // Merge plates (avoid duplicates by ID)
+                        if (imported.plates && Array.isArray(imported.plates)) {
+                            const merged = new Map();
+                            [...imported.plates, ...this.data.plates].forEach(p => merged.set(p.id, p));
+                            this.data.plates = Array.from(merged.values());
+                            importedCount += imported.plates.length;
+                        }
+
+                        // Merge expense types (avoid duplicates by ID)
+                        if (imported.expenseTypes && Array.isArray(imported.expenseTypes)) {
+                            const merged = new Map();
+                            [...imported.expenseTypes, ...this.data.expenseTypes].forEach(e => merged.set(e.id, e));
+                            this.data.expenseTypes = Array.from(merged.values());
+                            importedCount += imported.expenseTypes.length;
+                        }
+
+                        // Merge banks (avoid duplicates by ID)
+                        if (imported.banks && Array.isArray(imported.banks)) {
+                            const merged = new Map();
+                            [...imported.banks, ...this.data.banks].forEach(b => merged.set(b.id, b));
+                            this.data.banks = Array.from(merged.values());
+                            importedCount += imported.banks.length;
+                        }
+
+                        this.saveData();
+                        this.showToast(`Master data imported successfully!\n✓ Payees: ${imported.payees?.length || 0}\n✓ Plates: ${imported.plates?.length || 0}\n✓ Expense Types: ${imported.expenseTypes?.length || 0}\n✓ Banks: ${imported.banks?.length || 0}`, 'success');
+                        this.refreshAllTables();
+                        this.refreshDropdowns();
+                    } catch (error) {
+                        this.showToast('Error importing master data: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            },
+
+            /**
+             * Export data as CSV
+             */
+            exportCSV() {
+                let csv = 'Reference #,Date,Time,Bank,Control #,Payee,Plate,Expense Type,Amount,Status,Purpose,Remarks,Encoded By\n';
+
+                this.data.transactions.forEach(t => {
+                    csv += `"${t.refNumber}","${t.transDate}","${t.transTime}","${t.bank}","${t.controlNumber}","${t.payee}","${t.plateNumber}","${t.expenseType}",${t.amount},"${t.status}","${t.purpose}","${t.remarks}","${t.encodedBy}"\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `yamana-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+                URL.revokeObjectURL(url);
+                this.showToast('Data exported as CSV', 'success');
+            },
+
+            /**
+             * Clear all data
+             */
+            clearAllData() {
+                if (confirm('Are you sure? This will delete ALL data and cannot be undone!')) {
+                    this.data = {
+                        transactions: [],
+                        plates: [],
+                        payees: [],
+                        payeeCategories: [],
+                        expenseTypes: [],
+                        banks: [],
+                        voidLog: [],
+                        requests: [],
+                        lastControlNumber: 2461
+                    };
+                    this.initializeDefaults();
+                    this.saveData();
+                    this.showToast('All data cleared', 'success');
+                    this.updateDashboard();
+                    this.refreshAllTables();
+                }
+            },
+
+            /**
+             * Update backup info
+             */
+            updateBackupInfo() {
+                document.getElementById('db-trans-count').textContent = this.data.transactions.length;
+                document.getElementById('db-payee-count').textContent = this.data.payees.length;
+                document.getElementById('db-plate-count').textContent = this.data.plates.length;
+
+                // Calculate storage size
+                const size = new Blob([JSON.stringify(this.data)]).size;
+                document.getElementById('db-storage').textContent = (size / 1024).toFixed(2) + ' KB';
+            },
+
+            // ========================================
+            // UI HELPERS
+            // ========================================
+
+            /**
+             * Open modal
+             */
+            openModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (!modal) return;
+                
+                modal.classList.add('active');
+                
+                // Reset forms when opening
+                if (modalId === 'plate-modal') {
+                    const plateIdInput = document.getElementById('plate-id');
+                    const plateTitleEl = document.getElementById('plate-modal-title');
+                    const plateForm = document.getElementById('plate-form');
+                    if (plateIdInput && plateTitleEl && plateForm) {
+                        plateIdInput.value = '';
+                        plateTitleEl.textContent = 'Add Plate Number';
+                        plateForm.reset();
+                    }
+                } else if (modalId === 'payee-modal') {
+                    const payeeIdInput = document.getElementById('payee-id');
+                    const payeeTitleEl = document.getElementById('payee-modal-title');
+                    const payeeForm = document.getElementById('payee-form');
+                    const noBankAccountCheckbox = document.getElementById('payee-no-bank-account');
+                    const bankAccountsSection = document.getElementById('bank-accounts-section');
+                    const bankSelect = document.getElementById('payee-bank-select');
+                    
+                    if (payeeIdInput && payeeTitleEl && payeeForm) {
+                        payeeIdInput.value = '';
+                        payeeTitleEl.textContent = 'Add Payee';
+                        payeeForm.reset();
+                        window.tempBankAccounts = [];
+                        
+                        // Reset no bank account checkbox
+                        if (noBankAccountCheckbox) {
+                            noBankAccountCheckbox.checked = false;
+                            if (bankAccountsSection) {
+                                bankAccountsSection.style.display = 'block';
+                            }
+                        }
+                        
+                        // Populate bank select if it exists
+                        if (bankSelect) {
+                            bankSelect.innerHTML = '<option value="">-- Select Bank --</option>';
+                            this.data.banks.forEach(b => {
+                                const option = document.createElement('option');
+                                option.value = b.name;
+                                option.textContent = b.name;
+                                bankSelect.appendChild(option);
+                            });
+                        }
+                        
+                        this.displayBankAccounts();
+                    }
+                } else if (modalId === 'expense-type-modal') {
+                    const expenseTypeIdInput = document.getElementById('expense-type-id');
+                    const expenseTitleEl = document.getElementById('expense-type-modal-title');
+                    const expenseTypeForm = document.getElementById('expense-type-form');
+                    if (expenseTypeIdInput && expenseTitleEl && expenseTypeForm) {
+                        expenseTypeIdInput.value = '';
+                        expenseTitleEl.textContent = 'Add Expense Type';
+                        expenseTypeForm.reset();
+                    }
+                } else if (modalId === 'payee-category-modal') {
+                    const categoryIdInput = document.getElementById('payee-category-id');
+                    const categoryTitleEl = document.getElementById('payee-category-modal-title');
+                    const categoryForm = document.getElementById('payee-category-form');
+                    if (categoryIdInput && categoryTitleEl && categoryForm) {
+                        categoryIdInput.value = '';
+                        categoryTitleEl.textContent = 'Add Payee Category';
+                        categoryForm.reset();
+                    }
+                } else if (modalId === 'bank-modal') {
+                    const bankIdInput = document.getElementById('bank-id');
+                    const bankTitleEl = document.getElementById('bank-modal-title');
+                    const bankForm = document.getElementById('bank-form');
+                    if (bankIdInput && bankTitleEl && bankForm) {
+                        bankIdInput.value = '';
+                        bankTitleEl.textContent = 'Add Bank';
+                        bankForm.reset();
+                    }
+                }
+            },
+
+            /**
+             * Close modal
+             */
+            closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+            },
+
+            /**
+             * Show toast notification
+             */
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            },
+
+            /**
+             * Get status class for badge
+             */
+            getStatusClass(status) {
+                switch (status) {
+                    case 'Successful':
+                        return 'success';
+                    case 'Pending':
+                        return 'pending';
+                    case 'Failed':
+                        return 'failed';
+                    case 'VOID':
+                        return 'void';
+                    default:
+                        return '';
+                }
+            },
+
+            /**
+             * Populate all dropdowns
+             */
+            populateDropdowns() {
+                // Payee Categories
+                const categorySelect = document.getElementById('payee-category');
+                if (categorySelect && this.data.payeeCategories) {
+                    const currentValue = categorySelect.value;
+                    categorySelect.innerHTML = '<option value="">-- Select Category --</option>';
+
+                    this.data.payeeCategories.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.name;
+                        option.textContent = c.name;
+                        categorySelect.appendChild(option);
+                    });
+
+                    categorySelect.value = currentValue;
+                }
+
+                // Banks
+                ['bank', 'edit-bank', 'filter-bank', 'request-bank'].forEach(id => {
+                    const select = document.getElementById(id);
+                    if (!select) return;
+
+                    const currentValue = select.value;
+                    select.innerHTML = id === 'filter-bank' ? '<option value="">All Banks</option>' : '<option value="">-- Select Bank --</option>';
+
+                    this.data.banks.forEach(b => {
+                        const option = document.createElement('option');
+                        option.value = b.name;
+                        option.textContent = b.name;
+                        select.appendChild(option);
+                    });
+
+                    select.value = currentValue;
+                });
+
+                // Requested By (from payees)
+                const requestBySelect = document.getElementById('request-by');
+                if (requestBySelect) {
+                    const currentValue = requestBySelect.value;
+                    requestBySelect.innerHTML = '<option value="">-- Select Payee --</option>';
+
+                    this.data.payees.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.name;
+                        option.textContent = `${p.name} (${p.category})`;
+                        requestBySelect.appendChild(option);
+                    });
+
+                    requestBySelect.value = currentValue;
+                }
+
+                // Payees
+                ['payee', 'edit-payee', 'request-payee'].forEach(id => {
+                    const select = document.getElementById(id);
+                    if (!select) return;
+
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">-- Select Payee --</option>';
+
+                    this.data.payees.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.name;
+                        option.textContent = `${p.name} (${p.category})`;
+                        select.appendChild(option);
+                    });
+
+                    select.value = currentValue;
+                });
+
+                // Expense Types
+                ['expense-type', 'edit-expense-type', 'request-expense-type'].forEach(id => {
+                    const select = document.getElementById(id);
+                    if (!select) return;
+
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">-- Select Expense Type --</option>';
+
+                    this.data.expenseTypes.forEach(e => {
+                        const option = document.createElement('option');
+                        option.value = e.name;
+                        option.textContent = e.name;
+                        select.appendChild(option);
+                    });
+
+                    select.value = currentValue;
+                });
+
+                // Plate Numbers
+                ['plate-number', 'edit-plate-number', 'request-plate-number'].forEach(id => {
+                    const select = document.getElementById(id);
+                    if (!select) return;
+
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">-- Select Plate Number --</option>';
+
+                    this.data.plates.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.plateNumber;
+                        option.textContent = p.plateNumber;
+                        select.appendChild(option);
+                    });
+
+                    select.value = currentValue;
+                });
+            },
+
+            /**
+             * Refresh all master data tables
+             */
+            refreshAllTables() {
+                if (this.data.payeeCategories) {
+                    this.refreshTable('payee-categories-table-body', this.data.payeeCategories, 'category');
+                }
+                this.refreshTable('plates-table-body', this.data.plates, 'plate');
+                this.refreshTable('payees-table-body', this.data.payees, 'payee');
+                this.refreshTable('expense-types-table-body', this.data.expenseTypes, 'expense');
+                this.refreshTable('banks-table-body', this.data.banks, 'bank');
+            },
+
+            /**
+             * Refresh master data table
+             */
+            refreshTable(tableId, data, type) {
+                const tbody = document.getElementById(tableId);
+                tbody.innerHTML = '';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No records found</td></tr>`;
+                    return;
+                }
+
+                data.forEach(item => {
+                    const row = tbody.insertRow();
+
+                    if (type === 'plate') {
+                        row.innerHTML = `
+                            <td>${item.plateNumber}</td>
+                            <td>${item.vehicleType}</td>
+                            <td>${item.assignedDriver || '-'}</td>
+                            <td><span class="status-badge ${item.status === 'Active' ? 'success' : 'void'}">${item.status}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-secondary btn-small" onclick="app.editPlate('${item.id}')">Edit</button>
+                                    <button class="btn btn-secondary btn-small" onclick="app.deletePlate('${item.id}')">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                    } else if (type === 'payee') {
+                        let bankAccountsDisplay = '-';
+                        if (item.noBankAccount) {
+                            bankAccountsDisplay = '<span style="color: var(--color-secondary); font-weight: 600;">Direct Payment / Cash</span>';
+                        } else if (item.bankAccounts?.length > 0) {
+                            bankAccountsDisplay = item.bankAccounts.map(a => `${a.bank}: ${a.accountNumber}`).join(', ');
+                        }
+                        
+                        row.innerHTML = `
+                            <td>${item.name}</td>
+                            <td>${item.category}</td>
+                            <td>${bankAccountsDisplay}</td>
+                            <td>${item.notes || '-'}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-secondary btn-small" onclick="app.editPayee('${item.id}')">Edit</button>
+                                    <button class="btn btn-secondary btn-small" onclick="app.deletePayee('${item.id}')">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                    } else if (type === 'expense') {
+                        row.innerHTML = `
+                            <td>${item.name}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-secondary btn-small" onclick="app.editExpenseType('${item.id}')">Edit</button>
+                                    <button class="btn btn-secondary btn-small" onclick="app.deleteExpenseType('${item.id}')">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                    } else if (type === 'bank') {
+                        row.innerHTML = `
+                            <td>${item.name}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-secondary btn-small" onclick="app.editBank('${item.id}')">Edit</button>
+                                    <button class="btn btn-secondary btn-small" onclick="app.deleteBank('${item.id}')">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                    } else if (type === 'category') {
+                        row.innerHTML = `
+                            <td>${item.name}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-secondary btn-small" onclick="app.editPayeeCategory('${item.id}')">Edit</button>
+                                    <button class="btn btn-secondary btn-small" onclick="app.deletePayeeCategory('${item.id}')">Delete</button>
+                                </div>
+                            </td>
+                        `;
+                    }
+                });
+            },
+
+            /**
+             * Update dashboard
+             */
+            updateDashboard() {
+                const transactions = this.data.transactions;
+                const today = this.getFormattedDate(new Date());
+                const todayTransactions = transactions.filter(t =>
+                    t.transDate.replace(/-/g, '') === today
+                );
+
+                // Today's count and amount
+                document.getElementById('today-count').textContent = todayTransactions.length;
+                const todayAmount = todayTransactions.reduce((sum, t) => sum + t.amount, 0);
+                document.getElementById('today-amount').textContent = `₱${todayAmount.toFixed(2)}`;
+
+                // Current month total
+                const now = new Date();
+                const monthTransactions = transactions.filter(t => {
+                    const tDate = new Date(t.transDate);
+                    return tDate.getFullYear() === now.getFullYear() &&
+                        tDate.getMonth() === now.getMonth();
+                });
+                const monthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
+                document.getElementById('month-amount').textContent = `₱${monthAmount.toFixed(2)}`;
+
+                // Status counts
+                document.getElementById('pending-count').textContent = transactions.filter(t => t.status === 'Pending').length;
+                document.getElementById('success-count').textContent = transactions.filter(t => t.status === 'Successful').length;
+                document.getElementById('failed-count').textContent = transactions.filter(t => t.status === 'Failed').length;
+                document.getElementById('void-count').textContent = transactions.filter(t => t.status === 'VOID').length;
+
+                // Recent transactions
+                const recent = [...transactions]
+                    .sort((a, b) => new Date(`${b.transDate}T${b.transTime}`) - new Date(`${a.transDate}T${a.transTime}`))
+                    .slice(0, 5);
+
+                const dashboardTbody = document.getElementById('dashboard-table-body');
+                dashboardTbody.innerHTML = '';
+
+                recent.forEach(t => {
+                    const row = dashboardTbody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>${t.refNumber}</strong></td>
+                        <td>${t.transDate}</td>
+                        <td>${t.bank}</td>
+                        <td>${t.payee}</td>
+                        <td style="text-align: right; font-weight: 600;">₱${t.amount.toFixed(2)}</td>
+                        <td><span class="status-badge ${this.getStatusClass(t.status)}">${t.status}</span></td>
+                    `;
+                });
+
+                if (recent.length === 0) {
+                    const row = dashboardTbody.insertRow();
+                    row.innerHTML = '<td colspan="6" class="text-center text-muted">No transactions yet</td>';
+                }
+            }
+        };
+
+        // Initialize app on document ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
