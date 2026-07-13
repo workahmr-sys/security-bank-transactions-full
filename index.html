@@ -720,13 +720,13 @@
             <!-- SIDEBAR NAVIGATION -->
             <nav class="sidebar">
                 <ul class="sidebar-nav">
-                    <li><button class="nav-btn active" data-section="dashboard">Dashboard</button></li>
-                    <li><button class="nav-btn" data-section="requests">Requests</button></li>
-                    <li><button class="nav-btn" data-section="new-transaction">New Transaction</button></li>
-                    <li><button class="nav-btn" data-section="transactions">Transaction History</button></li>
-                    <li><button class="nav-btn" data-section="master-data">Master Data</button></li>
-                    <li><button class="nav-btn" data-section="reports">Reports</button></li>
-                    <li><button class="nav-btn" data-section="backup">Backup & Export</button></li>
+                    <li><button class="nav-btn active" data-section="dashboard" onclick="app.navigateTo('dashboard'); return false;">Dashboard</button></li>
+                    <li><button class="nav-btn" data-section="requests" onclick="app.navigateTo('requests'); return false;">Requests</button></li>
+                    <li><button class="nav-btn" data-section="new-transaction" onclick="app.navigateTo('new-transaction'); return false;">New Transaction</button></li>
+                    <li><button class="nav-btn" data-section="transactions" onclick="app.navigateTo('transactions'); return false;">Transaction History</button></li>
+                    <li><button class="nav-btn" data-section="master-data" onclick="app.navigateTo('master-data'); return false;">Master Data</button></li>
+                    <li><button class="nav-btn" data-section="reports" onclick="app.navigateTo('reports'); return false;">Reports</button></li>
+                    <li><button class="nav-btn" data-section="backup" onclick="app.navigateTo('backup'); return false;">Backup & Export</button></li>
                 </ul>
             </nav>
 
@@ -4293,24 +4293,14 @@
             }
 
             sendToTelegram() {
-                const refNumber = document.getElementById('ref-number').value || 'NEW';
+                const ref = document.getElementById('ref-number').value || 'NEW';
                 const payee = document.getElementById('payee').value || 'Unknown';
                 const bank = document.getElementById('account-bank').value || 'Security Bank';
-                const amount = document.getElementById('amount').value || '0';
-                const date = new Date().toLocaleDateString();
-                const time = new Date().toLocaleTimeString();
-                
-                const msg = '🏦 YAMANA BANK\nControl: ' + refNumber + '\nDate: ' + date + '\nTime: ' + time + '\nBank: ' + bank + '\nPayee: ' + payee + '\nAmount: ₱' + parseFloat(amount).toFixed(2) + '\n✅ Sent';
-                const cid = prompt('Enter Chat ID:');
-                if (!cid) return;
-                
-                fetch('https://api.telegram.org/bot8874970696:AAFHcKJHn6Dvb3_h8hE2qNgATkuv1z0YC7M/sendMessage', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({chat_id: cid, text: msg})
-                }).then(r => r.json()).then(d => {
-                    this.showToast(d.ok ? '✅ Sent!' : 'Error: ' + d.description, d.ok ? 'success' : 'error');
-                }).catch(e => this.showToast('Error: ' + e.message, 'error'));
+                const amt = document.getElementById('amount').value || '0';
+                const msg = '🏦 YAMANA BANK\nControl: ' + ref + '\nPayee: ' + payee + '\nBank: ' + bank + '\nAmount: ₱' + parseFloat(amt).toFixed(2) + '\n✅ Sent';
+                const id = prompt('Enter Telegram Group Chat ID:');
+                if (!id) return;
+                fetch('https://api.telegram.org/bot8874970696:AAFHcKJHn6Dvb3_h8hE2qNgATkuv1z0YC7M/sendMessage', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:id,text:msg})}).then(r=>r.json()).then(d=>{this.showToast(d.ok?'✅ Sent!':'Error',d.ok?'success':'error');}).catch(e=>this.showToast('Error',   'error'));
             }
 
         };
