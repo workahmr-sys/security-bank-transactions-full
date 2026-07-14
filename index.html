@@ -5099,10 +5099,38 @@
                 const payee = document.getElementById('payee').value || 'Unknown';
                 const bank = document.getElementById('account-bank').value || 'Security Bank';
                 const amt = document.getElementById('amount').value || '0';
-                const msg = '🏦 YAMANA BANK TRANSACTION\n\nControl #: ' + ref + '\nDate: ' + new Date().toLocaleDateString() + '\nBank: ' + bank + '\nPayee: ' + payee + '\nAmount: ₱' + parseFloat(amt).toFixed(2) + '\n\n✅ Sent from Security Bank App';
-                const id = prompt('Enter Telegram Group Chat ID:\n\nExample: -1001234567890');
-                if (!id) { this.showToast('Chat ID required', 'warning'); return; }
-                fetch('https://api.telegram.org/bot8874970696:AAFHcKJHn6Dvb3_h8hE2qNgATkuv1z0YC7M/sendMessage', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:id,text:msg})}).then(r=>r.json()).then(d=>{this.showToast(d.ok?'✅ Sent to Telegram!':'Error: '+d.description,d.ok?'success':'error');}).catch(e=>this.showToast('Error: '+e.message,'error'));
+                const date = new Date().toLocaleDateString();
+                const time = new Date().toLocaleTimeString();
+                
+                const chatId = prompt('Enter your Telegram Group Chat ID:\n\nExample: -1001234567890\n\n(Find it: Ask your group admin or use @userinfobot)');
+                if (!chatId) { 
+                    this.showToast('Chat ID is required to send message', 'warning'); 
+                    return; 
+                }
+                
+                const telegramToken = '8874970696:AAFHcKJHn6Dvb3_h8hE2qNgATkuv1z0YC7M';
+                const message = '🏦 YAMANA BANK TRANSACTION\n\nControl #: ' + ref + '\nDate: ' + date + '\nTime: ' + time + '\nBank: ' + bank + '\nPayee: ' + payee + '\nAmount: ₱' + parseFloat(amt).toFixed(2) + '\n\n✅ Sent from Security Bank App';
+                
+                this.showToast('📤 Sending to Telegram...', 'info');
+                
+                fetch('https://api.telegram.org/bot' + telegramToken + '/sendMessage', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({chat_id: chatId, text: message})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Telegram response:', data);
+                    if (data.ok) {
+                        this.showToast('✅ Message sent to Telegram successfully!', 'success');
+                    } else {
+                        this.showToast('❌ Telegram Error: ' + (data.description || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Telegram error:', error);
+                    this.showToast('❌ Error sending to Telegram: ' + error.message, 'error');
+                });
             }
 
         };
