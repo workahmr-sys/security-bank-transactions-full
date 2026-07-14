@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yamana Bank Transaction Log</title>
+    <title>Security Bank Transactions</title>
     <style>
         /* ========================================
            DESIGN SYSTEM & RESET
@@ -707,12 +707,14 @@
             border-bottom: 2px solid var(--color-secondary);
         }
     </style>
+    <!-- HTML2PDF Library for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- HEADER -->
         <header class="app-header">
-            <h1>Yamana Bank Transaction Log</h1>
+            <h1>Security Bank Transactions</h1>
         </header>
 
         <!-- MAIN CONTENT -->
@@ -750,21 +752,13 @@
                             <div class="summary-card-label">Current Month Total</div>
                             <div class="summary-card-value" id="month-amount">₱0.00</div>
                         </div>
-                        <div class="summary-card status-pending">
-                            <div class="summary-card-label">Pending</div>
-                            <div class="summary-card-value" id="pending-count">0</div>
-                        </div>
-                        <div class="summary-card status-success">
-                            <div class="summary-card-label">Successful</div>
-                            <div class="summary-card-value" id="success-count">0</div>
-                        </div>
-                        <div class="summary-card status-failed">
-                            <div class="summary-card-label">Failed</div>
-                            <div class="summary-card-value" id="failed-count">0</div>
-                        </div>
                         <div class="summary-card status-void">
                             <div class="summary-card-label">Voided</div>
                             <div class="summary-card-value" id="void-count">0</div>
+                        </div>
+                        <div class="summary-card" style="border-left: 4px solid var(--color-secondary);">
+                            <div class="summary-card-label">Open Requests</div>
+                            <div class="summary-card-value" id="dashboard-open-requests">0</div>
                         </div>
                     </div>
 
@@ -798,13 +792,13 @@
 
                     <div class="search-filter-bar">
                         <div class="search-box">
-                            <input type="text" id="request-search-input" placeholder="Search by Request ID, Requested By, Account Name...">
+                            <input type="text" id="request-search-input" placeholder="Search by control #, account name, bank...">
                         </div>
                         <div class="filter-group">
                             <select id="request-filter-status">
                                 <option value="">All Status</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Approved">Approved</option>
+                                <option value="Open">Open</option>
+                                <option value="Closed">Closed</option>
                                 <option value="Rejected">Rejected</option>
                             </select>
                         </div>
@@ -814,12 +808,12 @@
                         <table id="requests-table">
                             <thead>
                                 <tr>
-                                    <th>Request ID</th>
+                                    <th>Control #</th>
                                     <th>Date</th>
-                                    <th>Requested By</th>
                                     <th>Account Name</th>
-                                    <th>Amount</th>
-                                    <th>Expense Type</th>
+                                    <th>Bank</th>
+                                    <th>Items</th>
+                                    <th>Total Amount</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -837,62 +831,56 @@
                     <form id="request-form" class="form">
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Request Date <span class="required">*</span></label>
-                                <input type="date" id="request-date" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Requested By <span class="required">*</span></label>
-                                <select id="request-by" required>
-                                    <option value="">-- Select Payee --</option>
-                                </select>
+                                <label>Control Number</label>
+                                <input type="text" id="request-control-number">
+                                <p class="text-muted">Auto-generated</p>
                             </div>
                         </div>
 
                         <div class="form-row">
+                            <div class="form-group">
+                                <label>Account Name <span class="required">*</span></label>
+                                <select id="request-account-name" required>
+                                    <option value="">-- Select Account Holder --</option>
+                                </select>
+                                <p class="text-muted" style="font-size: 0.85rem;">Receiving account name</p>
+                            </div>
                             <div class="form-group">
                                 <label>Bank <span class="required">*</span></label>
                                 <select id="request-bank" required>
                                     <option value="">-- Select Bank --</option>
                                 </select>
+                                <p class="text-muted" style="font-size: 0.85rem;">Bank of receiving account</p>
                             </div>
-                            <div class="form-group">
-                                <label>Account Name <span class="required">*</span></label>
-                                <select id="request-payee" required>
-                                    <option value="">-- Select Account --</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
                             <div class="form-group">
                                 <label>Account Number</label>
-                                <input type="text" id="request-account-number" readonly>
-                                <p class="text-muted">Auto-populated from payee</p>
+                                <input type="text" id="request-account-number">
+                                <p class="text-muted">Auto-filled or manual entry</p>
                             </div>
                             <div class="form-group">
-                                <label>Amount <span class="required">*</span></label>
-                                <input type="number" id="request-amount" placeholder="0.00" step="0.01" min="0" required>
+                                <label>Amount</label>
+                                <input type="number" id="request-amount" placeholder="0.00" step="0.01" min="0">
+                                <p class="text-muted">Auto sum of the requests</p>
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Expense Type <span class="required">*</span></label>
-                                <select id="request-expense-type" required>
-                                    <option value="">-- Select Expense Type --</option>
-                                </select>
+                        <!-- ===== SPLIT REQUESTS SECTION ===== -->
+                        <div style="padding: 1.5rem; background-color: var(--color-bg-main); border-radius: var(--radius); margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h3 style="font-size: 1rem; color: var(--color-primary); margin: 0;">REQUESTS</h3>
+                                <button type="button" class="btn btn-primary btn-small" onclick="app.addRequestSplit()">+ Add Request</button>
                             </div>
-                            <div class="form-group">
-                                <label>Plate Number <span class="required">*</span></label>
-                                <select id="request-plate-number" required>
-                                    <option value="">-- Select Plate Number --</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label>Purpose <span class="required">*</span></label>
-                            <textarea id="request-purpose" placeholder="Transaction purpose..." required></textarea>
+                            <div id="request-splits-container">
+                                <!-- Default split will be added here -->
+                            </div>
+
+                            <div style="margin-top: 1rem; padding: 1rem; background-color: white; border-radius: var(--radius); border: 2px solid var(--color-secondary);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600; font-size: 1.05rem;">Total Requests:</span>
+                                    <span style="font-size: 1.3rem; font-weight: 700; color: var(--color-secondary);">₱<span id="request-splits-total">0.00</span></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -919,61 +907,52 @@
                                 <input type="text" id="ref-number">
                                 <p class="text-muted">Auto-generated</p>
                             </div>
-                            <div class="form-group">
-                                <label>Transaction Date <span class="required">*</span></label>
-                                <input type="date" id="trans-date" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Transaction Time <span class="required">*</span></label>
-                                <input type="time" id="trans-time" required>
-                            </div>
                         </div>
 
                         <div class="form-row">
+                            <div class="form-group">
+                                <label>Account Name <span class="required">*</span></label>
+                                <select id="account-name" required>
+                                    <option value="">-- Select Account Holder --</option>
+                                </select>
+                                <p class="text-muted" style="font-size: 0.85rem;">Receiving account name</p>
+                            </div>
                             <div class="form-group">
                                 <label>Bank <span class="required">*</span></label>
-                                <select id="bank" required>
+                                <select id="account-bank" required>
                                     <option value="">-- Select Bank --</option>
                                 </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Payee <span class="required">*</span></label>
-                                <select id="payee" required>
-                                    <option value="">-- Select Payee --</option>
-                                </select>
+                                <p class="text-muted" style="font-size: 0.85rem;">Bank of receiving account</p>
                             </div>
                             <div class="form-group">
                                 <label>Account Number</label>
-                                <input type="text" id="account-number" readonly>
-                                <p class="text-muted">Auto-populated from payee</p>
+                                <input type="text" id="account-number">
+                                <p class="text-muted">Auto-filled or manual entry</p>
                             </div>
                             <div class="form-group">
-                                <label>Amount <span class="required">*</span></label>
-                                <input type="number" id="amount" placeholder="0.00" step="0.01" min="0" required>
+                                <label>Amount</label>
+                                <input type="number" id="amount" placeholder="0.00" step="0.01" min="0">
+                                <p class="text-muted">Auto sum of the transactions</p>
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Expense Type <span class="required">*</span></label>
-                                <select id="expense-type" required>
-                                    <option value="">-- Select Expense Type --</option>
-                                </select>
+                        <!-- ===== TRANSACTIONS SECTION ===== -->
+                        <div style="padding: 1.5rem; background-color: var(--color-bg-main); border-radius: var(--radius); margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h3 style="font-size: 1rem; color: var(--color-primary); margin: 0;">TRANSACTIONS</h3>
+                                <button type="button" class="btn btn-primary btn-small" onclick="app.addSplit()">+ Add Split</button>
                             </div>
-                            <div class="form-group">
-                                <label>Plate Number <span class="required">*</span></label>
-                                <select id="plate-number" required>
-                                    <option value="">-- Select Plate Number --</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label>Purpose</label>
-                            <textarea id="purpose" placeholder="Transaction purpose..."></textarea>
+                            <div id="splits-container">
+                                <!-- Default split will be added here -->
+                            </div>
+
+                            <div style="margin-top: 1rem; padding: 1rem; background-color: white; border-radius: var(--radius); border: 2px solid var(--color-secondary);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 600; font-size: 1.05rem;">Total Splits:</span>
+                                    <span style="font-size: 1.3rem; font-weight: 700; color: var(--color-secondary);">₱<span id="splits-total">0.00</span></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -984,33 +963,12 @@
                         <div class="form-group">
                             <label>Status <span class="required">*</span></label>
                             <select id="status" required>
+                                <option value="Successful" selected>Successful</option>
                                 <option value="Pending">Pending</option>
-                                <option value="Successful">Successful</option>
                                 <option value="Failed">Failed</option>
+                                <option value="Void">Void</option>
+                                <option value="Unsuccessful">Unsuccessful</option>
                             </select>
-                        </div>
-
-                        <!-- ===== SPLIT TRANSACTIONS SECTION ===== -->
-                        <div style="border-top: 2px solid var(--color-border); padding-top: 2rem; margin-top: 2rem;">
-                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                                <h3 style="font-size: 1.1rem; color: var(--color-primary); margin: 0;">Split Transactions</h3>
-                                <button type="button" class="btn btn-primary btn-small" onclick="app.addSplit()">+ Add Split</button>
-                            </div>
-
-                            <p style="color: var(--color-text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
-                                Use splits when one control number covers multiple payees. Each split will create a separate transaction with the same control number and date.
-                            </p>
-
-                            <div id="splits-container">
-                                <!-- Splits will be added here dynamically -->
-                            </div>
-
-                            <div style="margin-top: 1rem; padding: 1rem; background-color: var(--color-bg-main); border-radius: var(--radius);">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 600;">Total Amount (Splits):</span>
-                                    <span style="font-size: 1.2rem; font-weight: 700; color: var(--color-primary);">₱<span id="splits-total">0.00</span></span>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="btn-group">
@@ -1028,26 +986,7 @@
                     
                     <div class="search-filter-bar">
                         <div class="search-box">
-                            <input type="text" id="search-input" placeholder="Search by ref #, control #, payee, plate, bank...">
-                        </div>
-                        <div class="filter-group">
-                            <select id="filter-status">
-                                <option value="">All Status</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Successful">Successful</option>
-                                <option value="Failed">Failed</option>
-                                <option value="VOID">Voided</option>
-                            </select>
-                            <select id="filter-bank">
-                                <option value="">All Banks</option>
-                            </select>
-                            <select id="filter-date-range">
-                                <option value="">All Dates</option>
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                                <option value="year">This Year</option>
-                            </select>
+                            <input type="text" id="search-input" placeholder="Search by payee, plate, expense type, purpose, account name, amount...">
                         </div>
                     </div>
 
@@ -1063,6 +1002,7 @@
                                     <th>Payee</th>
                                     <th>Plate</th>
                                     <th>Expense Type</th>
+                                    <th>Purpose</th>
                                     <th>Amount</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -1184,38 +1124,78 @@
                 <div id="reports" class="section">
                     <h2 class="section-title">Reports</h2>
                     
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                        <div class="summary-card">
-                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Summary Reports</h3>
-                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('daily')">Daily Summary</button>
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('weekly')">Weekly Summary</button>
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('monthly')">Monthly Summary</button>
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('annual')">Annual Summary</button>
+                    <div style="background: var(--color-bg-card); border-radius: var(--radius); padding: 1.5rem; border-left: 4px solid var(--color-secondary); margin-bottom: 2rem;">
+                        <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--color-primary);">Generate & Export Reports as PDF</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                            <!-- Date Range Pickers -->
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Start Date</label>
+                                <input type="date" id="report-start-date" style="width: 100%; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius);">
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">End Date</label>
+                                <input type="date" id="report-end-date" style="width: 100%; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius);">
                             </div>
                         </div>
 
-                        <div class="summary-card">
-                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Breakdown Reports</h3>
-                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('by-plate')">By Plate Number</button>
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('by-payee')">By Payee</button>
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('by-expense')">By Expense Type</button>
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('by-bank')">By Bank</button>
+                        <!-- Report Type Selection -->
+                        <div style="margin-bottom: 2rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 1rem;">Select Report Type</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 1rem; cursor: pointer;" onclick="app.selectReportType('by-status')">
+                                    <input type="radio" name="report-type" value="by-status" id="report-by-status">
+                                    <label for="report-by-status" style="cursor: pointer; font-weight: 600;">By Status</label>
+                                </div>
+                                <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 1rem; cursor: pointer;" onclick="app.selectReportType('by-bank')">
+                                    <input type="radio" name="report-type" value="by-bank" id="report-by-bank">
+                                    <label for="report-by-bank" style="cursor: pointer; font-weight: 600;">By Bank</label>
+                                </div>
+                                <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 1rem; cursor: pointer;" onclick="app.selectReportType('by-payee')">
+                                    <input type="radio" name="report-type" value="by-payee" id="report-by-payee">
+                                    <label for="report-by-payee" style="cursor: pointer; font-weight: 600;">By Payee</label>
+                                </div>
+                                <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 1rem; cursor: pointer;" onclick="app.selectReportType('by-plate')">
+                                    <input type="radio" name="report-type" value="by-plate" id="report-by-plate">
+                                    <label for="report-by-plate" style="cursor: pointer; font-weight: 600;">By Plate No.</label>
+                                </div>
+                                <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 1rem; cursor: pointer;" onclick="app.selectReportType('by-expense')">
+                                    <input type="radio" name="report-type" value="by-expense" id="report-by-expense">
+                                    <label for="report-by-expense" style="cursor: pointer; font-weight: 600;">By Expense Type</label>
+                                </div>
+                                <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 1rem; cursor: pointer;" onclick="app.selectReportType('by-account')">
+                                    <input type="radio" name="report-type" value="by-account" id="report-by-account">
+                                    <label for="report-by-account" style="cursor: pointer; font-weight: 600;">By Account Name</label>
+                                </div>
+                                <div style="border: 2px solid var(--color-border); border-radius: var(--radius); padding: 1rem; cursor: pointer;" onclick="app.selectReportType('by-date')">
+                                    <input type="radio" name="report-type" value="by-date" id="report-by-date">
+                                    <label for="report-by-date" style="cursor: pointer; font-weight: 600;">By Date</label>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="summary-card">
-                            <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Status Reports</h3>
-                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('failed')">Failed Transactions</button>
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('voided')">Voided Transactions</button>
-                                <button class="btn btn-secondary btn-small" onclick="app.generateReport('pending')">Pending Transactions</button>
-                            </div>
+                        <!-- Filter Selection (dynamic based on report type) -->
+                        <div id="report-filter-section" style="margin-bottom: 2rem; display: none;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 1rem;">Select Filter</label>
+                            <select id="report-filter-select" style="width: 100%; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius);">
+                                <option value="">-- Select --</option>
+                            </select>
+                        </div>
+
+                        <!-- Generate & Export Buttons -->
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="app.generateReportPreview()">Preview Report</button>
+                            <button class="btn btn-success" onclick="app.exportReportPDF()">Export as PDF</button>
+                            <button class="btn btn-secondary" onclick="app.clearReportPreview()">Clear</button>
                         </div>
                     </div>
 
-                    <div id="report-output" class="table-wrapper" style="margin-top: 2rem; display: none;">
+                    <!-- Report Preview -->
+                    <div id="report-output" class="table-wrapper" style="display: none; margin-top: 2rem;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 id="report-title" style="margin: 0 0 0.5rem 0;"></h3>
+                            <p id="report-subtitle" style="margin: 0; color: var(--color-text-secondary); font-size: 0.9rem;"></p>
+                        </div>
                         <div id="report-content"></div>
                     </div>
                 </div>
@@ -1243,6 +1223,7 @@
                             <h3 style="color: var(--color-primary); margin-bottom: 1rem; font-size: 1rem;">Database Info</h3>
                             <div id="db-info" style="font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.8;">
                                 <p><strong>Total Transactions:</strong> <span id="db-trans-count">0</span></p>
+                                <p><strong>Open Requests:</strong> <span id="db-open-requests">0</span></p>
                                 <p><strong>Total Payees:</strong> <span id="db-payee-count">0</span></p>
                                 <p><strong>Total Plate Numbers:</strong> <span id="db-plate-count">0</span></p>
                                 <p><strong>Storage Used:</strong> <span id="db-storage">0 KB</span></p>
@@ -1302,27 +1283,27 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="edit-trans-date">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Time</label>
-                        <input type="time" id="edit-trans-time">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Bank <span class="required">*</span></label>
-                        <select id="edit-bank" required>
-                            <option value="">-- Select Bank --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
                         <label>Payee <span class="required">*</span></label>
                         <select id="edit-payee" required>
                             <option value="">-- Select Payee --</option>
                         </select>
+                        <p class="text-muted" style="font-size: 0.85rem;">Person being charged</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <select id="edit-account-name">
+                            <option value="">-- Select Account Holder --</option>
+                        </select>
+                        <p class="text-muted" style="font-size: 0.85rem;">Whose account receives payment</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bank <span class="required">*</span></label>
+                        <select id="edit-account-bank" required>
+                            <option value="">-- Select Bank --</option>
+                        </select>
+                        <p class="text-muted" style="font-size: 0.85rem;">Bank of account holder</p>
                     </div>
 
                     <div class="form-group">
@@ -1350,8 +1331,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Purpose</label>
-                        <textarea id="edit-purpose"></textarea>
+                        <label>Purpose <span class="required">*</span></label>
+                        <textarea id="edit-purpose" required></textarea>
                     </div>
 
                     <div class="form-group">
@@ -1362,9 +1343,11 @@
                     <div class="form-group">
                         <label>Status <span class="required">*</span></label>
                         <select id="edit-status" required>
+                            <option value="Successful" selected>Successful</option>
                             <option value="Pending">Pending</option>
-                            <option value="Successful">Successful</option>
                             <option value="Failed">Failed</option>
+                            <option value="Void">Void</option>
+                            <option value="Unsuccessful">Unsuccessful</option>
                         </select>
                     </div>
                 </form>
@@ -1469,16 +1452,17 @@
                         </div>
 
                         <div id="bank-accounts-section">
-                            <h4 style="margin-bottom: 1rem; font-size: 0.95rem; color: var(--color-primary);">Bank Accounts</h4>
+                            <h4 style="margin-bottom: 1rem; font-size: 0.95rem; color: var(--color-primary);">Payment Accounts for This Payee</h4>
+                            <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 1rem;">Add this payee's bank accounts</p>
                             <div id="bank-accounts-list" style="margin-bottom: 1rem;">
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
                                 <select id="payee-bank-select">
                                     <option value="">-- Select Bank --</option>
                                 </select>
-                                <input type="text" id="payee-bank-account-number" placeholder="Account Number">
+                                <input type="text" id="payee-bank-account-number" placeholder="Account Number (e.g., 123-456-789)">
                             </div>
-                            <button type="button" class="btn btn-secondary btn-small" onclick="app.addBankAccount()" style="margin-top: 0.75rem;">Add Bank Account</button>
+                            <button type="button" class="btn btn-secondary btn-small" onclick="app.addBankAccount()" style="margin-top: 0.75rem;">Add Account</button>
                         </div>
                     </div>
 
@@ -1584,15 +1568,36 @@
     <!-- JAVASCRIPT -->
     <script>
         /**
-         * Yamana Bank Transaction Log
+         * Security Bank Transactions
          * Professional offline accounting application
          * All data stored in browser Local Storage
          */
 
-        const app = {
+        window.app = {
             // ========================================
             // DATA MANAGEMENT
             // ========================================
+
+            /**
+             * DATA STRUCTURE - TRANSACTION FORM EXAMPLE:
+             * 
+             * SCENARIO: Cash advance for Driver Juan, sent to Pedro's ATM
+             * 
+             * PAYEE = "Juan de la Cruz" (Person being charged)
+             *   → From PAYEES LIST
+             * 
+             * ACCOUNT NAME = "Pedro Tinapay" (Whose account receives it)
+             *   → Also from PAYEES LIST (different person)
+             * 
+             * ACCOUNT BANK = "MetroBank" (Pedro's bank)
+             *   → From Pedro Tinapay's bankAccounts
+             * 
+             * ACCOUNT NUMBER = "123-456-789" (Pedro's MetroBank account)
+             *   → Auto-filled from Pedro's data
+             * 
+             * DATA STRUCTURE in Master Data:
+             * Payee: { name, category, bankAccounts: [{bank, accountNumber}, ...] }
+             */
 
             data: {
                 transactions: [],
@@ -1603,8 +1608,13 @@
                 banks: [],
                 voidLog: [],
                 requests: [],
-                lastControlNumber: 2461
+                lastControlNumber: 2461,
+                lastRequestNumber: 0
             },
+
+            // Report state
+            currentReportType: null,
+            currentReportData: null,
 
             /**
              * Initialize the application
@@ -1623,6 +1633,12 @@
                 this.populateDropdowns();
                 this.updateDashboard();
                 this.refreshAllTables();
+                
+                // Initialize report date pickers
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+                document.getElementById('report-start-date').valueAsDate = thirtyDaysAgo;
+                document.getElementById('report-end-date').valueAsDate = today;
             },
 
             /**
@@ -1710,96 +1726,149 @@
             },
 
             /**
+             * Generate request control number
+             */
+            generateRequestControlNumber() {
+                // Initialize last request number if not set
+                if (!this.data.lastRequestNumber) {
+                    this.data.lastRequestNumber = 0;
+                }
+
+                // Increment for new request
+                this.data.lastRequestNumber++;
+                const controlNumber = `REQUEST${String(this.data.lastRequestNumber).padStart(4, '0')}`;
+
+                document.getElementById('request-control-number').value = controlNumber;
+                this.saveData(); // Save the incremented number
+                return controlNumber;
+            },
+
+            /**
              * Get formatted date string YYYYMMDD
              */
             getFormattedDate(date) {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const day = String(date.getDate()).padStart(2, '0');
-                return `${year}${month}${day}`;
+                return `${month}/${day}/${year}`;
+            },
+
+            /**
+             * Parse date from MM/DD/YYYY format
+             */
+            parseFormattedDate(dateString) {
+                const [month, day, year] = dateString.split('/');
+                return new Date(year, month - 1, day);
             },
 
             /**
              * Setup event listeners
              */
             setupEventListeners() {
-                // Navigation
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const section = e.target.dataset.section;
-                        this.navigateTo(section);
-                    });
-                });
+                // Navigation buttons now use direct onclick handlers in HTML
+                
+                // Safe event listener attachment
+                const safeAddEventListener = (selector, event, callback) => {
+                    const element = typeof selector === 'string' ? document.getElementById(selector) : selector;
+                    if (element) {
+                        element.addEventListener(event, callback);
+                    }
+                };
 
                 // New transaction form
-                document.getElementById('transaction-form').addEventListener('submit', (e) => {
+                safeAddEventListener('transaction-form', 'submit', (e) => {
                     e.preventDefault();
                     this.saveTransaction();
                 });
 
                 // Search and filters
-                document.getElementById('search-input').addEventListener('input', () => {
-                    this.filterTransactions();
-                });
-
-                document.getElementById('filter-status').addEventListener('change', () => {
-                    this.filterTransactions();
-                });
-
-                document.getElementById('filter-bank').addEventListener('change', () => {
-                    this.filterTransactions();
-                });
-
-                document.getElementById('filter-date-range').addEventListener('change', () => {
+                safeAddEventListener('search-input', 'input', () => {
                     this.filterTransactions();
                 });
 
                 // Import file
-                document.getElementById('import-file').addEventListener('change', (e) => {
+                safeAddEventListener('import-file', 'change', (e) => {
                     this.importJSON(e);
                 });
 
                 // Import master data file
-                document.getElementById('import-master-data-file').addEventListener('change', (e) => {
+                safeAddEventListener('import-master-data-file', 'change', (e) => {
                     this.importMasterData(e);
                 });
 
                 // Payee selection updates account number in transaction form
-                document.getElementById('payee').addEventListener('change', (e) => {
-                    this.updateAccountNumberFromPayee('payee', 'account-number');
+                safeAddEventListener('payee', 'change', (e) => {
+                    this.populateAccountNameDropdown();
                 });
 
-                // Bank selection updates account number in transaction form
-                document.getElementById('bank').addEventListener('change', (e) => {
-                    this.updateAccountNumberFromPayee('payee', 'account-number');
+                // Account name selection populates bank dropdown
+                safeAddEventListener('account-name', 'change', (e) => {
+                    this.populateAccountHolderBanks();
+                });
+
+                // Account bank selection populates account number
+                safeAddEventListener('account-bank', 'change', (e) => {
+                    this.updateAccountNumberFromHolder();
                 });
 
                 // Request form
-                document.getElementById('request-form').addEventListener('submit', (e) => {
+                safeAddEventListener('request-form', 'submit', (e) => {
                     e.preventDefault();
                     this.saveRequest();
                 });
 
                 // Payee selection updates account number in request form
-                document.getElementById('request-payee').addEventListener('change', (e) => {
+                safeAddEventListener('request-payee', 'change', (e) => {
                     this.updateAccountNumberFromPayee('request-payee', 'request-account-number');
                 });
 
+                // Request account name selection populates banks
+                safeAddEventListener('request-account-name', 'change', (e) => {
+                    this.populateRequestAccountHolderBanks();
+                });
+
+                // Request bank selection populates account number
+                safeAddEventListener('request-bank', 'change', (e) => {
+                    this.updateRequestAccountNumberFromHolder();
+                });
+
                 // Bank selection updates account number in request form
-                document.getElementById('request-bank').addEventListener('change', (e) => {
+                safeAddEventListener('request-bank', 'change', (e) => {
                     this.updateAccountNumberFromPayee('request-payee', 'request-account-number');
                 });
 
                 // Request search and filters
-                document.getElementById('request-search-input').addEventListener('input', () => {
+                safeAddEventListener('request-search-input', 'input', () => {
                     this.filterRequests();
                 });
 
-                document.getElementById('request-filter-status').addEventListener('change', () => {
+                safeAddEventListener('request-filter-status', 'change', () => {
                     this.filterRequests();
                 });
 
-                // No bank account checkbox
+                // Payee selection updates account name dropdown in edit modal
+                const editPayeeSelect = document.getElementById('edit-payee');
+                if (editPayeeSelect) {
+                    editPayeeSelect.addEventListener('change', (e) => {
+                        this.populateEditAccountNameDropdown();
+                    });
+                }
+
+                // Account name selection populates bank dropdown in edit modal
+                const editAccountNameSelect = document.getElementById('edit-account-name');
+                if (editAccountNameSelect) {
+                    editAccountNameSelect.addEventListener('change', (e) => {
+                        this.populateEditAccountHolderBanks();
+                    });
+                }
+
+                // Account bank selection populates account number in edit modal
+                const editAccountBankSelect = document.getElementById('edit-account-bank');
+                if (editAccountBankSelect) {
+                    editAccountBankSelect.addEventListener('change', (e) => {
+                        this.updateEditAccountNumber();
+                    });
+                }
                 const noBankAccountCheckbox = document.getElementById('payee-no-bank-account');
                 if (noBankAccountCheckbox) {
                     noBankAccountCheckbox.addEventListener('change', (e) => {
@@ -1815,20 +1884,31 @@
              * Navigate to section
              */
             navigateTo(section) {
+                if (!section) return;
+                
                 // Hide all sections
                 document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-
+                
                 // Show selected section
-                document.getElementById(section).classList.add('active');
-                document.querySelector(`[data-section="${section}"]`).classList.add('active');
+                const sectionElement = document.getElementById(section);
+                if (sectionElement) {
+                    sectionElement.classList.add('active');
+                }
+
+                // Update nav button active state
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                const navBtn = document.querySelector(`[data-section="${section}"]`);
+                if (navBtn) {
+                    navBtn.classList.add('active');
+                }
 
                 // Reset form when navigating to new transaction
                 if (section === 'new-transaction') {
                     document.getElementById('transaction-form').reset();
                     this.generateReferenceNumber();
-                    document.getElementById('trans-date').valueAsDate = new Date();
                     this.clearSplits();
+                    // Initialize with 1 default split
+                    this.addSplit();
                 }
 
                 // Refresh data when navigating to transaction history
@@ -1854,10 +1934,10 @@
                 // Reset request form
                 if (section === 'new-request') {
                     document.getElementById('request-form').reset();
-                    const requestDateInput = document.getElementById('request-date');
-                    if (requestDateInput) {
-                        requestDateInput.valueAsDate = new Date();
-                    }
+                    this.generateRequestControlNumber();
+                    this.clearRequestSplits();
+                    // Initialize with 1 default split
+                    this.addRequestSplit();
                 }
             },
 
@@ -1890,6 +1970,196 @@
                 }
             },
 
+            /**
+             * Populate Account Name dropdown with ALL PAYEES from master list
+             * (excluding the selected payee to prevent self-assignment)
+             */
+            populateAccountNameDropdown() {
+                const accountNameSelect = document.getElementById('account-name');
+                
+                accountNameSelect.innerHTML = '<option value="">-- Select Account Holder --</option>';
+                
+                // Show all payees (no exclusion needed since payee is per-split)
+                this.data.payees.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.name;
+                    option.textContent = `${p.name}`;
+                    accountNameSelect.appendChild(option);
+                });
+                
+                // Reset dependent fields
+                document.getElementById('account-bank').innerHTML = '<option value="">-- Select Bank --</option>';
+                document.getElementById('account-number').value = '';
+            },
+
+            /**
+             * Populate banks dropdown for selected account holder
+             */
+            populateAccountHolderBanks() {
+                const selectedHolder = document.getElementById('account-name').value;
+                const bankSelect = document.getElementById('account-bank');
+                
+                bankSelect.innerHTML = '<option value="">-- Select Bank --</option>';
+                document.getElementById('account-number').value = '';
+                
+                if (!selectedHolder) return;
+                
+                const holder = this.data.payees.find(p => p.name === selectedHolder);
+                if (!holder || !holder.bankAccounts) return;
+                
+                // Show unique banks for this account holder
+                const uniqueBanks = [...new Set(holder.bankAccounts.map(a => a.bank))];
+                uniqueBanks.forEach(bank => {
+                    const option = document.createElement('option');
+                    option.value = bank;
+                    option.textContent = bank;
+                    bankSelect.appendChild(option);
+                });
+            },
+
+            /**
+             * Auto-fill account number from selected account holder and bank
+             */
+            updateAccountNumberFromHolder() {
+                const selectedHolder = document.getElementById('account-name').value;
+                const selectedBank = document.getElementById('account-bank').value;
+                const accountNumberField = document.getElementById('account-number');
+                
+                if (!selectedHolder || !selectedBank) {
+                    accountNumberField.value = '';
+                    return;
+                }
+                
+                const holder = this.data.payees.find(p => p.name === selectedHolder);
+                if (!holder || !holder.bankAccounts) {
+                    accountNumberField.value = '';
+                    return;
+                }
+                
+                const bankAccount = holder.bankAccounts.find(a => a.bank === selectedBank);
+                accountNumberField.value = bankAccount ? bankAccount.accountNumber : '';
+            },
+
+            /**
+             * Populate banks for request account holder
+             */
+            populateRequestAccountHolderBanks() {
+                const selectedHolder = document.getElementById('request-account-name').value;
+                const bankSelect = document.getElementById('request-bank');
+                
+                bankSelect.innerHTML = '<option value="">-- Select Bank --</option>';
+                document.getElementById('request-account-number').value = '';
+                
+                if (!selectedHolder) return;
+                
+                const holder = this.data.payees.find(p => p.name === selectedHolder);
+                if (!holder || !holder.bankAccounts) return;
+                
+                // Show unique banks for this account holder
+                const uniqueBanks = [...new Set(holder.bankAccounts.map(a => a.bank))];
+                uniqueBanks.forEach(bank => {
+                    const option = document.createElement('option');
+                    option.value = bank;
+                    option.textContent = bank;
+                    bankSelect.appendChild(option);
+                });
+            },
+
+            /**
+             * Auto-fill account number for request from selected account holder and bank
+             */
+            updateRequestAccountNumberFromHolder() {
+                const selectedHolder = document.getElementById('request-account-name').value;
+                const selectedBank = document.getElementById('request-bank').value;
+                const accountNumberField = document.getElementById('request-account-number');
+                
+                if (!selectedHolder || !selectedBank) {
+                    accountNumberField.value = '';
+                    return;
+                }
+                
+                const holder = this.data.payees.find(p => p.name === selectedHolder);
+                if (!holder || !holder.bankAccounts) {
+                    accountNumberField.value = '';
+                    return;
+                }
+                
+                const bankAccount = holder.bankAccounts.find(a => a.bank === selectedBank);
+                accountNumberField.value = bankAccount ? bankAccount.accountNumber : '';
+            },
+
+            /**
+             * Populate Account Name dropdown for edit modal
+             */
+            populateEditAccountNameDropdown() {
+                const selectedPayee = document.getElementById('edit-payee').value;
+                const accountNameSelect = document.getElementById('edit-account-name');
+                
+                accountNameSelect.innerHTML = '<option value="">-- Select Account Holder --</option>';
+                
+                // Show all payees except the selected one
+                this.data.payees.forEach(p => {
+                    if (p.name !== selectedPayee) {
+                        const option = document.createElement('option');
+                        option.value = p.name;
+                        option.textContent = `${p.name} (${p.category})`;
+                        accountNameSelect.appendChild(option);
+                    }
+                });
+                
+                // Reset dependent fields
+                document.getElementById('edit-account-bank').innerHTML = '<option value="">-- Select Bank --</option>';
+                document.getElementById('edit-account-number').value = '';
+            },
+
+            /**
+             * Populate banks dropdown for edit modal account holder
+             */
+            populateEditAccountHolderBanks() {
+                const selectedHolder = document.getElementById('edit-account-name').value;
+                const bankSelect = document.getElementById('edit-account-bank');
+                
+                bankSelect.innerHTML = '<option value="">-- Select Bank --</option>';
+                document.getElementById('edit-account-number').value = '';
+                
+                if (!selectedHolder) return;
+                
+                const holder = this.data.payees.find(p => p.name === selectedHolder);
+                if (!holder || !holder.bankAccounts) return;
+                
+                // Show unique banks for this account holder
+                const uniqueBanks = [...new Set(holder.bankAccounts.map(a => a.bank))];
+                uniqueBanks.forEach(bank => {
+                    const option = document.createElement('option');
+                    option.value = bank;
+                    option.textContent = bank;
+                    bankSelect.appendChild(option);
+                });
+            },
+
+            /**
+             * Auto-fill account number for edit modal
+             */
+            updateEditAccountNumber() {
+                const selectedHolder = document.getElementById('edit-account-name').value;
+                const selectedBank = document.getElementById('edit-account-bank').value;
+                const accountNumberField = document.getElementById('edit-account-number');
+                
+                if (!selectedHolder || !selectedBank) {
+                    accountNumberField.value = '';
+                    return;
+                }
+                
+                const holder = this.data.payees.find(p => p.name === selectedHolder);
+                if (!holder || !holder.bankAccounts) {
+                    accountNumberField.value = '';
+                    return;
+                }
+                
+                const bankAccount = holder.bankAccounts.find(a => a.bank === selectedBank);
+                accountNumberField.value = bankAccount ? bankAccount.accountNumber : '';
+            },
+
             // ========================================
             // TRANSACTION MANAGEMENT
             // ========================================
@@ -1911,18 +2181,18 @@
                 // Standard single transaction save
                 // Validate required fields
                 const refNumber = document.getElementById('ref-number').value;
-                const transDate = document.getElementById('trans-date').value;
-                const transTime = document.getElementById('trans-time').value;
-                const bank = document.getElementById('bank').value;
+                const transTime = new Date().toTimeString().slice(0, 5); // Auto-generate current time
+                const transDate = this.getFormattedDate(new Date()); // Use today's date
+                const bank = document.getElementById('account-bank').value;
                 const payee = document.getElementById('payee').value;
+                const accountName = document.getElementById('account-name').value;
                 const accountNumber = document.getElementById('account-number').value;
                 const amount = parseFloat(document.getElementById('amount').value);
                 const expenseType = document.getElementById('expense-type').value;
-                const plateNumber = document.getElementById('plate-number').value;
                 const status = document.getElementById('status').value;
                 const sourceRequestId = document.getElementById('source-request-id').value;
 
-                if (!transDate || !transTime || !bank || !payee || !amount || !expenseType || !plateNumber) {
+                if (!bank || !payee || !accountName || !amount || !expenseType) {
                     this.showToast('Please fill in all required fields', 'error');
                     return;
                 }
@@ -1946,11 +2216,12 @@
                     bank,
                     controlNumber: document.getElementById('ref-number').value,
                     payee,
+                    accountName,
                     accountNumber,
                     amount,
                     expenseType,
-                    plateNumber,
-                    purpose: document.getElementById('purpose').value,
+                    plateNumber: '', // No plate number in non-split mode
+                    purpose: '', // No purpose in non-split mode
                     remarks: document.getElementById('remarks').value,
                     status,
                     createdAt: new Date().toISOString(),
@@ -1976,6 +2247,7 @@
                 document.getElementById('transaction-form').reset();
                 document.getElementById('source-request-id').value = '';
                 this.clearSplits();
+                this.addSplit(); // Re-initialize with 1 default split
                 setTimeout(() => {
                     this.navigateTo('transactions');
                 }, 500);
@@ -1986,17 +2258,16 @@
              */
             saveTransactionWithSplits() {
                 const refNumber = document.getElementById('ref-number').value;
-                const transDate = document.getElementById('trans-date').value;
-                const transTime = document.getElementById('trans-time').value;
-                const bank = document.getElementById('bank').value;
-                const expenseType = document.getElementById('expense-type').value;
-                const plateNumber = document.getElementById('plate-number').value;
-                const purpose = document.getElementById('purpose').value;
+                const transTime = new Date().toTimeString().slice(0, 5); // Auto-generate current time
+                const transDate = this.getFormattedDate(new Date()); // Use today's date
+                const bank = document.getElementById('account-bank').value;
+                const accountName = document.getElementById('account-name').value;
+                const accountNumber = document.getElementById('account-number').value;
                 const remarks = document.getElementById('remarks').value;
                 const status = document.getElementById('status').value;
 
-                if (!transDate || !transTime || !bank || !expenseType || !plateNumber) {
-                    this.showToast('Please fill in all required fields', 'error');
+                if (!bank || !accountName) {
+                    this.showToast('Please fill in all required fields (Bank and Account Name)', 'error');
                     return;
                 }
 
@@ -2014,46 +2285,64 @@
                 // Collect all split data
                 splitInputs.forEach((item, idx) => {
                     const payee = item.querySelector('.split-payee').value;
+                    const plateNumber = item.querySelector('.split-plate').value;
+                    const expenseType = item.querySelector('.split-expense-type').value;
+                    const purpose = item.querySelector('.split-purpose').value;
                     const amount = parseFloat(item.querySelector('.split-amount').value) || 0;
 
-                    if (!payee || !amount || amount <= 0) {
-                        this.showToast(`Split ${idx + 1}: Please fill payee and amount`, 'error');
+                    if (!payee || !plateNumber || !expenseType || !amount || amount <= 0) {
+                        this.showToast(`Split ${idx + 1}: Please fill payee, plate number, expense type, and amount`, 'error');
                         throw new Error('Invalid split');
                     }
 
-                    const accountNumber = this.getPayeeAccountNumber(payee, bank);
-                    splits.push({ payee, amount, accountNumber });
+                    if (!purpose || purpose.trim() === '') {
+                        this.showToast(`Split ${idx + 1}: Please fill purpose`, 'error');
+                        throw new Error('Invalid split - missing purpose');
+                    }
+
+                    splits.push({ payee, plateNumber, expenseType, purpose, amount });
                     totalAmount += amount;
                 });
 
                 try {
+                    // Get source request ID if this transaction is being created from a request
+                    const sourceRequestId = document.getElementById('source-request-id').value;
+
                     // Create a transaction for each split with same control number
                     splits.forEach((split, idx) => {
-                        const refNumber = `${refNumberPrefix}-${String(idx + 1).padStart(6, '0')}`;
-
+                        // Only add "-split-X" suffix if there are multiple splits
+                        const splitRefNumber = splits.length > 1 ? `${refNumber}-split-${idx + 1}` : refNumber;
+                        
                         const transaction = {
                             id: `trans-${Date.now()}-${idx}`,
-                            refNumber: `${refNumber}-split-${idx + 1}`,
+                            refNumber: splitRefNumber,
                             transDate,
                             transTime,
                             bank,
                             controlNumber: refNumber,
                             payee: split.payee,
-                            accountNumber: split.accountNumber,
+                            accountName: accountName,
+                            accountNumber: accountNumber,
                             amount: split.amount,
-                            expenseType,
-                            plateNumber,
-                            purpose,
+                            expenseType: split.expenseType,
+                            plateNumber: split.plateNumber,
+                            purpose: split.purpose,
                             remarks: remarks ? `${remarks} (Split ${idx + 1}/${splits.length})` : `Split ${idx + 1}/${splits.length}`,
-                            status,
+                            status: status,
                             createdAt: new Date().toISOString(),
-                            sourceRequestId: null
+                            sourceRequestId: sourceRequestId || null
                         };
 
                         this.data.transactions.push(transaction);
                     });
 
+                    // If this transaction came from a request, close the request
+                    if (sourceRequestId) {
+                        this.closeRequest(sourceRequestId, refNumber);
+                    }
+
                     this.saveData();
+                    this.updateDashboard();
                     this.showToast(`Split transaction saved (${splits.length} entries, Total: ₱${totalAmount.toFixed(2)})`, 'success');
 
                     // Reset form and navigate
@@ -2064,7 +2353,7 @@
                         this.navigateTo('transactions');
                     }, 500);
                 } catch (error) {
-                    this.showToast('Error saving split transaction: ' + error.message, 'error');
+                    console.error('Split transaction error:', error);
                 }
             },
 
@@ -2087,18 +2376,34 @@
                 const splitCount = container.querySelectorAll('.split-item').length;
 
                 const splitHTML = `
-                    <div class="split-item" style="display: grid; grid-template-columns: 2fr 1fr 0.3fr; gap: 1rem; align-items: end; margin-bottom: 1rem; padding: 1rem; background: var(--color-bg-main); border-radius: var(--radius); border-left: 3px solid var(--color-secondary);">
+                    <div class="split-item" style="display: grid; grid-template-columns: 1.2fr 1fr 1.2fr 1.2fr 1fr 0.3fr; gap: 0.75rem; align-items: end; margin-bottom: 1rem; padding: 1rem; background: white; border-radius: var(--radius); border: 1px solid var(--color-border); border-left: 4px solid var(--color-secondary);">
                         <div>
-                            <label style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem;">Payee <span class="required">*</span></label>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Payee <span class="required">*</span></label>
                             <select class="split-payee" required>
                                 <option value="">-- Select Payee --</option>
                             </select>
                         </div>
                         <div>
-                            <label style="display: block; font-size: 0.9rem; margin-bottom: 0.5rem;">Amount <span class="required">*</span></label>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Plate # <span class="required">*</span></label>
+                            <select class="split-plate" required>
+                                <option value="">-- Select Plate --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Expense Type <span class="required">*</span></label>
+                            <select class="split-expense-type" required>
+                                <option value="">-- Select Type --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Purpose <span class="required">*</span></label>
+                            <input type="text" class="split-purpose" placeholder="Purpose..." required>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Amount <span class="required">*</span></label>
                             <input type="number" class="split-amount" step="0.01" min="0" placeholder="0.00" required>
                         </div>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="app.removeSplit(this)" style="background-color: #dc3545; color: white; padding: 0.5rem; font-size: 0.9rem;">✕ Remove</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="app.removeSplit(this)" style="background-color: #dc3545; color: white; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%;">✕</button>
                     </div>
                 `;
 
@@ -2109,13 +2414,34 @@
                 this.data.payees.forEach(p => {
                     const option = document.createElement('option');
                     option.value = p.name;
-                    option.textContent = `${p.name} (${p.category})`;
+                    option.textContent = `${p.name}`;
                     newPayeeSelect.appendChild(option);
                 });
 
-                // Add event listener for amount changes
+                // Populate plate dropdown
+                const newPlateSelect = container.querySelector('.split-item:last-child .split-plate');
+                this.data.plates.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.plateNumber;
+                    option.textContent = `${p.plateNumber}`;
+                    newPlateSelect.appendChild(option);
+                });
+
+                // Populate expense type dropdown
+                const newExpenseTypeSelect = container.querySelector('.split-item:last-child .split-expense-type');
+                this.data.expenseTypes.forEach(e => {
+                    const option = document.createElement('option');
+                    option.value = e.name;
+                    option.textContent = `${e.name}`;
+                    newExpenseTypeSelect.appendChild(option);
+                });
+
+                // Add event listeners for changes
                 container.querySelector('.split-item:last-child .split-amount').addEventListener('change', () => this.updateSplitsTotal());
                 container.querySelector('.split-item:last-child .split-payee').addEventListener('change', () => this.updateSplitsTotal());
+                container.querySelector('.split-item:last-child .split-plate').addEventListener('change', () => this.updateSplitsTotal());
+                container.querySelector('.split-item:last-child .split-expense-type').addEventListener('change', () => this.updateSplitsTotal());
+                container.querySelector('.split-item:last-child .split-purpose').addEventListener('change', () => this.updateSplitsTotal());
 
                 this.updateSplitsTotal();
             },
@@ -2155,6 +2481,118 @@
             },
 
             /**
+             * Add a request split row
+             */
+            addRequestSplit() {
+                const container = document.getElementById('request-splits-container');
+                const splitCount = container.querySelectorAll('.request-split-item').length;
+
+                const splitHTML = `
+                    <div class="request-split-item" style="display: grid; grid-template-columns: 1.2fr 1fr 1.2fr 1.2fr 1fr 0.3fr; gap: 0.75rem; align-items: end; margin-bottom: 1rem; padding: 1rem; background: white; border-radius: var(--radius); border: 1px solid var(--color-border); border-left: 4px solid var(--color-secondary);">
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Payee <span class="required">*</span></label>
+                            <select class="request-split-payee" required>
+                                <option value="">-- Select Payee --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Plate # <span class="required">*</span></label>
+                            <select class="request-split-plate" required>
+                                <option value="">-- Select Plate --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Expense Type <span class="required">*</span></label>
+                            <select class="request-split-expense-type" required>
+                                <option value="">-- Select Type --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Purpose <span class="required">*</span></label>
+                            <input type="text" class="request-split-purpose" placeholder="Purpose..." required>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem;">Amount <span class="required">*</span></label>
+                            <input type="number" class="request-split-amount" step="0.01" min="0" placeholder="0.00" required>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="app.removeRequestSplit(this)" style="background-color: #dc3545; color: white; padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 100%;">✕</button>
+                    </div>
+                `;
+
+                container.insertAdjacentHTML('beforeend', splitHTML);
+
+                // Populate payee dropdown
+                const newPayeeSelect = container.querySelector('.request-split-item:last-child .request-split-payee');
+                this.data.payees.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.name;
+                    option.textContent = `${p.name}`;
+                    newPayeeSelect.appendChild(option);
+                });
+
+                // Populate plate dropdown
+                const newPlateSelect = container.querySelector('.request-split-item:last-child .request-split-plate');
+                this.data.plates.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.plateNumber;
+                    option.textContent = `${p.plateNumber}`;
+                    newPlateSelect.appendChild(option);
+                });
+
+                // Populate expense type dropdown
+                const newExpenseTypeSelect = container.querySelector('.request-split-item:last-child .request-split-expense-type');
+                this.data.expenseTypes.forEach(e => {
+                    const option = document.createElement('option');
+                    option.value = e.name;
+                    option.textContent = `${e.name}`;
+                    newExpenseTypeSelect.appendChild(option);
+                });
+
+                // Add event listeners for changes
+                container.querySelector('.request-split-item:last-child .request-split-amount').addEventListener('change', () => this.updateRequestSplitsTotal());
+                container.querySelector('.request-split-item:last-child .request-split-payee').addEventListener('change', () => this.updateRequestSplitsTotal());
+                container.querySelector('.request-split-item:last-child .request-split-plate').addEventListener('change', () => this.updateRequestSplitsTotal());
+                container.querySelector('.request-split-item:last-child .request-split-expense-type').addEventListener('change', () => this.updateRequestSplitsTotal());
+                container.querySelector('.request-split-item:last-child .request-split-purpose').addEventListener('change', () => this.updateRequestSplitsTotal());
+
+                this.updateRequestSplitsTotal();
+            },
+
+            /**
+             * Remove a request split row
+             */
+            removeRequestSplit(button) {
+                button.closest('.request-split-item').remove();
+                this.updateRequestSplitsTotal();
+            },
+
+            /**
+             * Update total for request splits display
+             */
+            updateRequestSplitsTotal() {
+                const container = document.getElementById('request-splits-container');
+                const splitAmounts = container.querySelectorAll('.request-split-amount');
+                let total = 0;
+
+                splitAmounts.forEach(input => {
+                    total += parseFloat(input.value) || 0;
+                });
+
+                document.getElementById('request-splits-total').textContent = total.toFixed(2);
+            },
+
+            /**
+             * Clear all request splits
+             */
+            clearRequestSplits() {
+                const container = document.getElementById('request-splits-container');
+                if (container) {
+                    container.innerHTML = '';
+                    document.getElementById('request-splits-total').textContent = '0.00';
+                }
+            },
+
+            /**
              * Edit transaction
              */
             editTransaction(id) {
@@ -2164,10 +2602,9 @@
                 document.getElementById('edit-trans-id').value = id;
                 document.getElementById('edit-ref-number').value = transaction.refNumber;
                 document.getElementById('edit-control-number').value = transaction.controlNumber || '';
-                document.getElementById('edit-trans-date').value = transaction.transDate || '';
-                document.getElementById('edit-trans-time').value = transaction.transTime || '';
-                document.getElementById('edit-bank').value = transaction.bank;
+                document.getElementById('edit-account-bank').value = transaction.bank;
                 document.getElementById('edit-payee').value = transaction.payee;
+                document.getElementById('edit-account-name').value = transaction.accountName || '';
                 document.getElementById('edit-account-number').value = transaction.accountNumber || '';
                 document.getElementById('edit-amount').value = transaction.amount;
                 document.getElementById('edit-expense-type').value = transaction.expenseType;
@@ -2175,6 +2612,14 @@
                 document.getElementById('edit-purpose').value = transaction.purpose || '';
                 document.getElementById('edit-remarks').value = transaction.remarks || '';
                 document.getElementById('edit-status').value = transaction.status;
+
+                // Populate account names for the selected payee
+                this.populateEditAccountNameDropdown();
+                
+                // Populate banks for the selected account holder
+                if (transaction.accountName) {
+                    this.populateEditAccountHolderBanks();
+                }
 
                 this.openModal('edit-transaction-modal');
             },
@@ -2191,17 +2636,23 @@
                     return;
                 }
 
+                // Validate required fields
+                const purpose = document.getElementById('edit-purpose').value;
+                if (!purpose || purpose.trim() === '') {
+                    this.showToast('Purpose is required', 'error');
+                    return;
+                }
+
                 // Update all editable fields
                 transaction.controlNumber = document.getElementById('edit-control-number').value;
-                transaction.transDate = document.getElementById('edit-trans-date').value;
-                transaction.transTime = document.getElementById('edit-trans-time').value;
-                transaction.bank = document.getElementById('edit-bank').value;
+                transaction.bank = document.getElementById('edit-account-bank').value;
                 transaction.payee = document.getElementById('edit-payee').value;
+                transaction.accountName = document.getElementById('edit-account-name').value;
                 transaction.accountNumber = document.getElementById('edit-account-number').value;
                 transaction.amount = parseFloat(document.getElementById('edit-amount').value);
                 transaction.expenseType = document.getElementById('edit-expense-type').value;
                 transaction.plateNumber = document.getElementById('edit-plate-number').value;
-                transaction.purpose = document.getElementById('edit-purpose').value;
+                transaction.purpose = purpose;
                 transaction.remarks = document.getElementById('edit-remarks').value;
                 transaction.status = document.getElementById('edit-status').value;
 
@@ -2235,20 +2686,24 @@
                             </div>
                         </div>
                         <div>
-                            <p class="text-muted">Bank</p>
-                            <p>${transaction.bank}</p>
+                            <p class="text-muted">Payee (Charged)</p>
+                            <p>${transaction.payee}</p>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="border-top: 1px solid #e5e5e5; padding-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <p class="text-muted">Control Number</p>
-                                <p>${transaction.controlNumber || '-'}</p>
+                                <p class="text-muted">Account Holder (Receives)</p>
+                                <p>${transaction.accountName || '-'}</p>
                             </div>
                             <div>
-                                <p class="text-muted">Payee</p>
-                                <p>${transaction.payee}</p>
+                                <p class="text-muted">Bank</p>
+                                <p>${transaction.bank}</p>
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <p class="text-muted">Account Number</p>
+                            <p>${transaction.accountNumber || '-'}</p>
+                        </div>
+                        <div style="border-top: 1px solid #e5e5e5; padding-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
                                 <p class="text-muted">Amount</p>
                                 <p style="font-weight: 600;">₱${transaction.amount.toFixed(2)}</p>
@@ -2258,7 +2713,7 @@
                                 <p><span class="status-badge ${this.getStatusClass(transaction.status)}">${transaction.status}</span></p>
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="border-top: 1px solid #e5e5e5; padding-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
                                 <p class="text-muted">Expense Type</p>
                                 <p>${transaction.expenseType}</p>
@@ -2841,46 +3296,80 @@
              * Save new request
              */
             saveRequest() {
-                const requestDate = document.getElementById('request-date').value;
-                const requestBy = document.getElementById('request-by').value;
+                const controlNumber = document.getElementById('request-control-number').value;
+                const accountName = document.getElementById('request-account-name').value;
                 const bank = document.getElementById('request-bank').value;
-                const payee = document.getElementById('request-payee').value;
                 const accountNumber = document.getElementById('request-account-number').value;
-                const amount = parseFloat(document.getElementById('request-amount').value);
-                const expenseType = document.getElementById('request-expense-type').value;
-                const plateNumber = document.getElementById('request-plate-number').value;
-                const purpose = document.getElementById('request-purpose').value;
                 const remarks = document.getElementById('request-remarks').value;
 
-                if (!requestDate || !requestBy || !bank || !payee || !amount || !expenseType || !plateNumber || !purpose) {
-                    this.showToast('Please fill in all required fields', 'error');
+                // Get all request splits
+                const container = document.getElementById('request-splits-container');
+                const splitItems = container.querySelectorAll('.request-split-item');
+
+                if (!accountName || !bank) {
+                    this.showToast('Please fill in Account Name and Bank', 'error');
                     return;
                 }
 
-                if (amount <= 0) {
-                    this.showToast('Amount must be greater than zero', 'error');
+                if (splitItems.length === 0) {
+                    this.showToast('Please add at least one request', 'error');
                     return;
                 }
 
+                // Validate and collect splits
+                const splits = [];
+                let validationError = false;
+
+                splitItems.forEach((item, index) => {
+                    const payee = item.querySelector('.request-split-payee').value;
+                    const plate = item.querySelector('.request-split-plate').value;
+                    const expenseType = item.querySelector('.request-split-expense-type').value;
+                    const purpose = item.querySelector('.request-split-purpose').value;
+                    const amount = parseFloat(item.querySelector('.request-split-amount').value);
+
+                    if (!payee || !plate || !expenseType || !purpose || !amount || amount <= 0) {
+                        validationError = true;
+                        return;
+                    }
+
+                    splits.push({
+                        payee,
+                        plateNumber: plate,
+                        expenseType,
+                        purpose,
+                        amount
+                    });
+                });
+
+                if (validationError) {
+                    this.showToast('Please fill in all required fields for all requests and ensure amounts are greater than zero', 'error');
+                    return;
+                }
+
+                // Create the request object
                 const request = {
                     id: `req-${Date.now()}`,
-                    requestDate,
-                    requestBy,
+                    controlNumber,
+                    requestDate: this.getFormattedDate(new Date()),
+                    accountName,
                     bank,
-                    payee,
                     accountNumber,
-                    amount,
-                    expenseType,
-                    plateNumber,
-                    purpose,
+                    splits: splits,
                     remarks,
-                    status: 'Pending',
-                    createdAt: new Date().toISOString()
+                    status: 'Open', // New requests start as "Open"
+                    createdAt: new Date().toISOString(),
+                    approvedAt: null,
+                    transactionRefNumber: null
                 };
+
+                if (!this.data.requests) {
+                    this.data.requests = [];
+                }
 
                 this.data.requests.push(request);
                 this.saveData();
                 this.showToast('Request submitted successfully', 'success');
+                this.updateDashboard();
 
                 // Reset form and navigate
                 document.getElementById('request-form').reset();
@@ -2908,22 +3397,45 @@
                     document.getElementById('source-request-id').value = requestId;
 
                     // Pre-fill transaction form with request data
-                    document.getElementById('trans-date').valueAsDate = new Date();
-                    document.getElementById('trans-time').value = new Date().toTimeString().slice(0, 5);
-                    document.getElementById('bank').value = request.bank;
-                    document.getElementById('payee').value = request.payee;
+                    document.getElementById('account-name').value = request.accountName;
                     
-                    // Trigger payee change event to update account number
-                    const payeeSelect = document.getElementById('payee');
-                    if (payeeSelect) {
-                        payeeSelect.dispatchEvent(new Event('change'));
+                    // Trigger account name change to populate banks
+                    const accountNameSelect = document.getElementById('account-name');
+                    if (accountNameSelect) {
+                        accountNameSelect.dispatchEvent(new Event('change'));
                     }
+
+                    // Set bank and account number after a brief delay
+                    setTimeout(() => {
+                        document.getElementById('account-bank').value = request.bank;
+                        document.getElementById('account-number').value = request.accountNumber;
+                    }, 100);
+
+                    // Clear existing splits and populate with request splits
+                    this.clearSplits();
                     
-                    document.getElementById('amount').value = request.amount;
-                    document.getElementById('expense-type').value = request.expenseType;
-                    document.getElementById('plate-number').value = request.plateNumber;
-                    document.getElementById('purpose').value = request.purpose;
-                    document.getElementById('remarks').value = request.remarks ? request.remarks + ` (From Request: ${request.id})` : `From Request: ${request.id}`;
+                    // Add splits from request
+                    request.splits.forEach((split, index) => {
+                        this.addSplit();
+                        
+                        // Get the last added split
+                        const container = document.getElementById('splits-container');
+                        const lastSplit = container.querySelector('.split-item:last-child');
+                        
+                        if (lastSplit) {
+                            lastSplit.querySelector('.split-payee').value = split.payee;
+                            lastSplit.querySelector('.split-plate').value = split.plateNumber;
+                            lastSplit.querySelector('.split-expense-type').value = split.expenseType;
+                            lastSplit.querySelector('.split-purpose').value = split.purpose;
+                            lastSplit.querySelector('.split-amount').value = split.amount.toFixed(2);
+                        }
+                    });
+
+                    // Update total
+                    this.updateSplitsTotal();
+
+                    // Set remarks
+                    document.getElementById('remarks').value = request.remarks ? request.remarks + ` (From Request: ${request.controlNumber})` : `From Request: ${request.controlNumber}`;
                     document.getElementById('status').value = 'Successful';
 
                     this.showToast('Request data pre-filled. Review and edit if needed, then save to approve.', 'info');
@@ -2956,7 +3468,23 @@
                 request.status = 'Rejected';
                 request.rejectedAt = new Date().toISOString();
                 this.saveData();
+                this.updateDashboard();
                 this.showToast('Request rejected', 'success');
+                this.filterRequests();
+            },
+
+            /**
+             * Close/complete request after approval
+             */
+            closeRequest(requestId, transactionRefNumber) {
+                const request = this.data.requests.find(r => r.id === requestId);
+                if (!request) return;
+
+                request.status = 'Closed';
+                request.approvedAt = new Date().toISOString();
+                request.transactionRefNumber = transactionRefNumber;
+                this.saveData();
+                this.updateDashboard();
                 this.filterRequests();
             },
 
@@ -2969,7 +3497,7 @@
 
                 let filtered = this.data.requests.filter(r => {
                     if (searchTerm) {
-                        const searchText = `${r.id} ${r.requestBy} ${r.payee}`.toLowerCase();
+                        const searchText = `${r.controlNumber} ${r.accountName} ${r.bank}`.toLowerCase();
                         if (!searchText.includes(searchTerm)) return false;
                     }
 
@@ -2997,19 +3525,23 @@
                 }
 
                 requests.forEach(r => {
+                    // Calculate total from splits
+                    const totalAmount = r.splits ? r.splits.reduce((sum, s) => sum + s.amount, 0) : 0;
+                    const splitCount = r.splits ? r.splits.length : 0;
+                    
                     const row = tbody.insertRow();
                     row.innerHTML = `
-                        <td><strong>${r.id}</strong></td>
+                        <td><strong>${r.controlNumber}</strong></td>
                         <td>${r.requestDate}</td>
-                        <td>${r.requestBy}</td>
-                        <td>${r.payee}</td>
-                        <td style="text-align: right; font-weight: 600;">₱${r.amount.toFixed(2)}</td>
-                        <td>${r.expenseType}</td>
+                        <td>${r.accountName}</td>
+                        <td>${r.bank}</td>
+                        <td>${splitCount} item(s)</td>
+                        <td style="text-align: right; font-weight: 600;">₱${totalAmount.toFixed(2)}</td>
                         <td><span class="status-badge ${this.getStatusClass(r.status)}">${r.status}</span></td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn btn-secondary btn-small" onclick="app.viewRequest('${r.id}')">View</button>
-                                ${r.status === 'Pending' ? `
+                                ${r.status === 'Open' ? `
                                     <button class="btn btn-success btn-small" onclick="app.approveRequest('${r.id}')">Approve</button>
                                     <button class="btn btn-danger btn-small" onclick="app.rejectRequest('${r.id}')">Reject</button>
                                 ` : ''}
@@ -3026,40 +3558,37 @@
                 const request = this.data.requests.find(r => r.id === id);
                 if (!request) return;
 
+                // Calculate total from splits
+                const totalAmount = request.splits ? request.splits.reduce((sum, s) => sum + s.amount, 0) : 0;
+
+                // Build splits table
+                let splitsHTML = '<table style="width: 100%; border-collapse: collapse;">';
+                splitsHTML += '<thead><tr style="border-bottom: 2px solid var(--color-border);"><th style="padding: 0.5rem; text-align: left;">Payee</th><th style="padding: 0.5rem; text-align: left;">Plate #</th><th style="padding: 0.5rem; text-align: left;">Expense Type</th><th style="padding: 0.5rem; text-align: left;">Purpose</th><th style="padding: 0.5rem; text-align: right;">Amount</th></tr></thead>';
+                splitsHTML += '<tbody>';
+                
+                if (request.splits && request.splits.length > 0) {
+                    request.splits.forEach((split, idx) => {
+                        splitsHTML += `<tr style="border-bottom: 1px solid var(--color-border);">
+                            <td style="padding: 0.5rem;">${split.payee}</td>
+                            <td style="padding: 0.5rem;">${split.plateNumber}</td>
+                            <td style="padding: 0.5rem;">${split.expenseType}</td>
+                            <td style="padding: 0.5rem;">${split.purpose}</td>
+                            <td style="padding: 0.5rem; text-align: right; font-weight: 600;">₱${split.amount.toFixed(2)}</td>
+                        </tr>`;
+                    });
+                }
+                splitsHTML += '</tbody></table>';
+
                 const content = `
                     <div style="display: grid; gap: 1rem;">
                         <div>
-                            <p class="text-muted">Request ID</p>
-                            <p style="font-weight: 600; font-size: 1.1rem;">${request.id}</p>
+                            <p class="text-muted">Control Number</p>
+                            <p style="font-weight: 600; font-size: 1.1rem;">${request.controlNumber}</p>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
                                 <p class="text-muted">Request Date</p>
                                 <p>${request.requestDate}</p>
-                            </div>
-                            <div>
-                                <p class="text-muted">Requested By</p>
-                                <p>${request.requestBy}</p>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="text-muted">Bank</p>
-                            <p>${request.bank}</p>
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div>
-                                <p class="text-muted">Account Name</p>
-                                <p>${request.payee}</p>
-                            </div>
-                            <div>
-                                <p class="text-muted">Account Number</p>
-                                <p>${request.accountNumber || '-'}</p>
-                            </div>
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div>
-                                <p class="text-muted">Amount</p>
-                                <p style="font-weight: 600;">₱${request.amount.toFixed(2)}</p>
                             </div>
                             <div>
                                 <p class="text-muted">Status</p>
@@ -3068,22 +3597,40 @@
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
-                                <p class="text-muted">Expense Type</p>
-                                <p>${request.expenseType}</p>
+                                <p class="text-muted">Account Holder</p>
+                                <p>${request.accountName}</p>
                             </div>
                             <div>
-                                <p class="text-muted">Plate Number</p>
-                                <p>${request.plateNumber}</p>
+                                <p class="text-muted">Bank</p>
+                                <p>${request.bank}</p>
                             </div>
                         </div>
                         <div>
-                            <p class="text-muted">Purpose</p>
-                            <p>${request.purpose || '-'}</p>
+                            <p class="text-muted">Account Number</p>
+                            <p>${request.accountNumber || '-'}</p>
                         </div>
-                        <div>
-                            <p class="text-muted">Remarks</p>
-                            <p>${request.remarks || '-'}</p>
+                        <div style="border-top: 1px solid var(--color-border); padding-top: 1rem; margin-top: 1rem;">
+                            <p class="text-muted" style="margin-bottom: 0.5rem;">Requests (${request.splits ? request.splits.length : 0} item(s))</p>
+                            ${splitsHTML}
                         </div>
+                        <div style="background-color: #f5f5f5; padding: 1rem; border-radius: var(--radius); border-left: 4px solid var(--color-secondary);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600;">Total Amount:</span>
+                                <span style="font-size: 1.3rem; font-weight: 700; color: var(--color-secondary);">₱${totalAmount.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        ${request.remarks ? `
+                            <div>
+                                <p class="text-muted">Remarks</p>
+                                <p>${request.remarks}</p>
+                            </div>
+                        ` : ''}
+                        ${request.transactionRefNumber ? `
+                            <div style="background-color: #e8f5e9; padding: 1rem; border-radius: var(--radius);">
+                                <p class="text-muted">Approved Transaction</p>
+                                <p style="font-weight: 600;">${request.transactionRefNumber}</p>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
 
@@ -3096,9 +3643,6 @@
              */
             filterTransactions() {
                 const searchTerm = document.getElementById('search-input').value.toLowerCase();
-                const statusFilter = document.getElementById('filter-status').value;
-                const bankFilter = document.getElementById('filter-bank').value;
-                const dateRangeFilter = document.getElementById('filter-date-range').value;
 
                 let filtered = this.data.transactions.filter(t => {
                     // Search filter
@@ -3111,43 +3655,11 @@
                             ${t.bank}
                             ${t.expenseType}
                             ${t.amount}
+                            ${t.purpose}
+                            ${t.accountName}
                             ${t.remarks}
                         `.toLowerCase();
                         if (!searchableText.includes(searchTerm)) return false;
-                    }
-
-                    // Status filter
-                    if (statusFilter && t.status !== statusFilter) return false;
-
-                    // Bank filter
-                    if (bankFilter && t.bank !== bankFilter) return false;
-
-                    // Date range filter
-                    if (dateRangeFilter) {
-                        const transDate = new Date(t.transDate);
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-
-                        switch (dateRangeFilter) {
-                            case 'today':
-                                if (transDate < today) return false;
-                                break;
-                            case 'week':
-                                const weekAgo = new Date(today);
-                                weekAgo.setDate(weekAgo.getDate() - 7);
-                                if (transDate < weekAgo) return false;
-                                break;
-                            case 'month':
-                                const monthAgo = new Date(today);
-                                monthAgo.setMonth(monthAgo.getMonth() - 1);
-                                if (transDate < monthAgo) return false;
-                                break;
-                            case 'year':
-                                const yearAgo = new Date(today);
-                                yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-                                if (transDate < yearAgo) return false;
-                                break;
-                        }
                     }
 
                     return true;
@@ -3155,8 +3667,12 @@
 
                 // Sort by date descending
                 filtered.sort((a, b) => {
-                    const dateA = new Date(`${a.transDate}T${a.transTime}`);
-                    const dateB = new Date(`${b.transDate}T${b.transTime}`);
+                    const dateA = this.parseFormattedDate(a.transDate);
+                    const dateB = this.parseFormattedDate(b.transDate);
+                    // If dates are the same, sort by time
+                    if (dateA.getTime() === dateB.getTime()) {
+                        return b.transTime.localeCompare(a.transTime);
+                    }
                     return dateB - dateA;
                 });
 
@@ -3171,7 +3687,7 @@
                 tbody.innerHTML = '';
 
                 if (transactions.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted">No transactions found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="12" class="text-center text-muted">No transactions found</td></tr>';
                     return;
                 }
 
@@ -3186,6 +3702,7 @@
                         <td>${t.payee}</td>
                         <td>${t.plateNumber}</td>
                         <td>${t.expenseType}</td>
+                        <td>${t.purpose || '-'}</td>
                         <td style="text-align: right; font-weight: 600;">₱${t.amount.toFixed(2)}</td>
                         <td><span class="status-badge ${this.getStatusClass(t.status)}">${t.status}</span></td>
                         <td>
@@ -3255,7 +3772,7 @@
              */
             generateDailyReport(transactions) {
                 const today = this.getFormattedDate(new Date());
-                const todayTrans = transactions.filter(t => t.transDate.replace(/-/g, '') === today);
+                const todayTrans = transactions.filter(t => t.transDate === today);
                 const total = todayTrans.reduce((sum, t) => sum + t.amount, 0);
 
                 return `
@@ -3314,7 +3831,7 @@
                 weekAgo.setDate(weekAgo.getDate() - 7);
 
                 const weekTrans = transactions.filter(t => {
-                    const tDate = new Date(t.transDate);
+                    const tDate = this.parseFormattedDate(t.transDate);
                     return tDate >= weekAgo && tDate <= today;
                 });
 
@@ -3346,7 +3863,7 @@
                 const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
                 const monthTrans = transactions.filter(t => {
-                    const tDate = new Date(t.transDate);
+                    const tDate = this.parseFormattedDate(t.transDate);
                     return tDate.getFullYear() === today.getFullYear() &&
                         tDate.getMonth() === today.getMonth();
                 });
@@ -3378,7 +3895,7 @@
                 const year = today.getFullYear();
 
                 const yearTrans = transactions.filter(t => {
-                    const tDate = new Date(t.transDate);
+                    const tDate = this.parseFormattedDate(t.transDate);
                     return tDate.getFullYear() === year;
                 });
 
@@ -4014,6 +4531,16 @@
             },
 
             /**
+             * Format currency as ₱ X,XXX.XX
+             */
+            formatCurrency(amount) {
+                return '₱ ' + parseFloat(amount).toLocaleString('en-PH', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
+            /**
              * Get status class for badge
              */
             getStatusClass(status) {
@@ -4029,6 +4556,235 @@
                     default:
                         return '';
                 }
+            },
+
+            /**
+             * Report Functions
+             */
+
+            selectReportType(type) {
+                document.getElementById(`report-${type}`).checked = true;
+                this.currentReportType = type;
+
+                const filterSection = document.getElementById('report-filter-section');
+                const filterSelect = document.getElementById('report-filter-select');
+                
+                // Populate filter options based on report type
+                filterSelect.innerHTML = '<option value="">-- Select --</option>';
+                
+                if (type === 'by-status') {
+                    ['Successful', 'Pending', 'Failed', 'VOID'].forEach(status => {
+                        const option = document.createElement('option');
+                        option.value = status;
+                        option.textContent = status;
+                        filterSelect.appendChild(option);
+                    });
+                    filterSection.style.display = 'block';
+                } else if (type === 'by-bank') {
+                    this.data.banks.forEach(bank => {
+                        const option = document.createElement('option');
+                        option.value = bank.name;
+                        option.textContent = bank.name;
+                        filterSelect.appendChild(option);
+                    });
+                    filterSection.style.display = 'block';
+                } else if (type === 'by-payee') {
+                    this.data.payees.forEach(payee => {
+                        const option = document.createElement('option');
+                        option.value = payee.name;
+                        option.textContent = payee.name;
+                        filterSelect.appendChild(option);
+                    });
+                    filterSection.style.display = 'block';
+                } else if (type === 'by-plate') {
+                    this.data.plates.forEach(plate => {
+                        const option = document.createElement('option');
+                        option.value = plate.plateNumber;
+                        option.textContent = plate.plateNumber;
+                        filterSelect.appendChild(option);
+                    });
+                    filterSection.style.display = 'block';
+                } else if (type === 'by-expense') {
+                    this.data.expenseTypes.forEach(exp => {
+                        const option = document.createElement('option');
+                        option.value = exp.name;
+                        option.textContent = exp.name;
+                        filterSelect.appendChild(option);
+                    });
+                    filterSection.style.display = 'block';
+                } else if (type === 'by-account') {
+                    this.data.payees.forEach(payee => {
+                        const option = document.createElement('option');
+                        option.value = payee.name;
+                        option.textContent = payee.name;
+                        filterSelect.appendChild(option);
+                    });
+                    filterSection.style.display = 'block';
+                } else if (type === 'by-date') {
+                    filterSection.style.display = 'none';
+                }
+            },
+
+            generateReportPreview() {
+                const reportType = this.currentReportType;
+                const startDate = document.getElementById('report-start-date').value;
+                const endDate = document.getElementById('report-end-date').value;
+                const filterValue = document.getElementById('report-filter-select').value;
+
+                if (!reportType) {
+                    this.showToast('Please select a report type', 'error');
+                    return;
+                }
+
+                if (!startDate || !endDate) {
+                    this.showToast('Please select start and end dates', 'error');
+                    return;
+                }
+
+                // Filter transactions by date range
+                const startDateObj = new Date(startDate);
+                const endDateObj = new Date(endDate);
+                endDateObj.setDate(endDateObj.getDate() + 1); // Include end date
+
+                const filteredTransactions = this.data.transactions.filter(t => {
+                    const tDate = this.parseFormattedDate(t.transDate);
+                    return tDate >= startDateObj && tDate < endDateObj;
+                });
+
+                let reportData = [];
+                let reportTitle = '';
+                let reportSubtitle = `Date Range: ${startDate} to ${endDate}`;
+
+                // Apply additional filters based on report type
+                switch (reportType) {
+                    case 'by-status':
+                        if (!filterValue) {
+                            this.showToast('Please select a status', 'error');
+                            return;
+                        }
+                        reportTitle = `Transactions by Status: ${filterValue}`;
+                        reportData = filteredTransactions.filter(t => t.status === filterValue);
+                        break;
+                    case 'by-bank':
+                        if (!filterValue) {
+                            this.showToast('Please select a bank', 'error');
+                            return;
+                        }
+                        reportTitle = `Transactions by Bank: ${filterValue}`;
+                        reportData = filteredTransactions.filter(t => t.bank === filterValue);
+                        break;
+                    case 'by-payee':
+                        if (!filterValue) {
+                            this.showToast('Please select a payee', 'error');
+                            return;
+                        }
+                        reportTitle = `Transactions by Payee: ${filterValue}`;
+                        reportData = filteredTransactions.filter(t => t.payee === filterValue);
+                        break;
+                    case 'by-plate':
+                        if (!filterValue) {
+                            this.showToast('Please select a plate number', 'error');
+                            return;
+                        }
+                        reportTitle = `Transactions by Plate: ${filterValue}`;
+                        reportData = filteredTransactions.filter(t => t.plateNumber === filterValue);
+                        break;
+                    case 'by-expense':
+                        if (!filterValue) {
+                            this.showToast('Please select an expense type', 'error');
+                            return;
+                        }
+                        reportTitle = `Transactions by Expense Type: ${filterValue}`;
+                        reportData = filteredTransactions.filter(t => t.expenseType === filterValue);
+                        break;
+                    case 'by-account':
+                        if (!filterValue) {
+                            this.showToast('Please select an account name', 'error');
+                            return;
+                        }
+                        reportTitle = `Transactions by Account: ${filterValue}`;
+                        reportData = filteredTransactions.filter(t => t.accountName === filterValue);
+                        break;
+                    case 'by-date':
+                        reportTitle = 'Transactions by Date';
+                        reportData = filteredTransactions;
+                        break;
+                }
+
+                // Generate table HTML
+                let tableHTML = '<table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">';
+                tableHTML += '<thead><tr style="background-color: #f0f0f0; border: 1px solid #ddd;"><th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Ref #</th><th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Date</th><th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Payee</th><th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Bank</th><th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Account</th><th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Account #</th><th style="padding: 0.5rem; border: 1px solid #ddd; text-align: right;">Amount</th><th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Status</th></tr></thead>';
+                tableHTML += '<tbody>';
+
+                let totalAmount = 0;
+                reportData.forEach(t => {
+                    totalAmount += t.amount;
+                    tableHTML += `<tr style="border: 1px solid #ddd;">
+                        <td style="padding: 0.5rem; border: 1px solid #ddd;">${t.refNumber}</td>
+                        <td style="padding: 0.5rem; border: 1px solid #ddd;">${t.transDate}</td>
+                        <td style="padding: 0.5rem; border: 1px solid #ddd;">${t.payee}</td>
+                        <td style="padding: 0.5rem; border: 1px solid #ddd;">${t.bank}</td>
+                        <td style="padding: 0.5rem; border: 1px solid #ddd;">${t.accountName || '-'}</td>
+                        <td style="padding: 0.5rem; border: 1px solid #ddd;">${t.accountNumber || '-'}</td>
+                        <td style="padding: 0.5rem; border: 1px solid #ddd; text-align: right;">${this.formatCurrency(t.amount)}</td>
+                        <td style="padding: 0.5rem; border: 1px solid #ddd;"><span class="status-badge ${this.getStatusClass(t.status)}">${t.status}</span></td>
+                    </tr>`;
+                });
+
+                tableHTML += `<tr style="background-color: #f5f5f5; border: 1px solid #ddd; font-weight: 600;">
+                    <td colspan="6" style="padding: 0.5rem; border: 1px solid #ddd; text-align: right;">TOTAL:</td>
+                    <td style="padding: 0.5rem; border: 1px solid #ddd; text-align: right;">${this.formatCurrency(totalAmount)}</td>
+                    <td style="padding: 0.5rem; border: 1px solid #ddd;">${reportData.length} entries</td>
+                </tr>`;
+
+                tableHTML += '</tbody></table>';
+
+                // Display report
+                document.getElementById('report-title').textContent = reportTitle;
+                document.getElementById('report-subtitle').textContent = reportSubtitle;
+                document.getElementById('report-content').innerHTML = tableHTML;
+                document.getElementById('report-output').style.display = 'block';
+
+                // Store report data for PDF export
+                this.currentReportData = {
+                    title: reportTitle,
+                    subtitle: reportSubtitle,
+                    content: tableHTML,
+                    transactions: reportData,
+                    total: totalAmount
+                };
+
+                this.showToast(`Report generated: ${reportData.length} transactions`, 'success');
+            },
+
+            exportReportPDF() {
+                if (!this.currentReportData) {
+                    this.showToast('Please generate a report first', 'error');
+                    return;
+                }
+
+                const element = document.getElementById('report-output');
+                const opt = {
+                    margin: 10,
+                    filename: `yamana-report-${new Date().toISOString().split('T')[0]}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+                };
+
+                html2pdf().set(opt).from(element).save();
+                this.showToast('PDF exported successfully', 'success');
+            },
+
+            clearReportPreview() {
+                document.getElementById('report-output').style.display = 'none';
+                document.getElementById('report-content').innerHTML = '';
+                document.getElementById('report-title').textContent = '';
+                document.getElementById('report-subtitle').textContent = '';
+                document.querySelectorAll('input[name="report-type"]').forEach(r => r.checked = false);
+                document.getElementById('report-filter-select').innerHTML = '';
+                this.currentReportType = null;
+                this.currentReportData = null;
             },
 
             /**
@@ -4103,13 +4859,31 @@
                     select.value = currentValue;
                 });
 
-                // Expense Types
-                ['expense-type', 'edit-expense-type', 'request-expense-type'].forEach(id => {
+                // Account Names (receiving account holders)
+                ['account-name', 'edit-account-name', 'filter-account-name', 'request-account-name'].forEach(id => {
                     const select = document.getElementById(id);
                     if (!select) return;
 
                     const currentValue = select.value;
-                    select.innerHTML = '<option value="">-- Select Expense Type --</option>';
+                    select.innerHTML = id === 'filter-account-name' ? '<option value="">All Account Names</option>' : '<option value="">-- Select Account Holder --</option>';
+
+                    this.data.payees.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.name;
+                        option.textContent = `${p.name}`;
+                        select.appendChild(option);
+                    });
+
+                    select.value = currentValue;
+                });
+
+                // Expense Types
+                ['expense-type', 'edit-expense-type', 'filter-expense-type', 'request-expense-type'].forEach(id => {
+                    const select = document.getElementById(id);
+                    if (!select) return;
+
+                    const currentValue = select.value;
+                    select.innerHTML = id === 'filter-expense-type' ? '<option value="">All Expense Types</option>' : '<option value="">-- Select Expense Type --</option>';
 
                     this.data.expenseTypes.forEach(e => {
                         const option = document.createElement('option');
@@ -4122,17 +4896,35 @@
                 });
 
                 // Plate Numbers
-                ['plate-number', 'edit-plate-number', 'request-plate-number'].forEach(id => {
+                ['plate-number', 'edit-plate-number', 'filter-plate', 'request-plate-number'].forEach(id => {
                     const select = document.getElementById(id);
                     if (!select) return;
 
                     const currentValue = select.value;
-                    select.innerHTML = '<option value="">-- Select Plate Number --</option>';
+                    select.innerHTML = id === 'filter-plate' ? '<option value="">All Plates</option>' : '<option value="">-- Select Plate Number --</option>';
 
                     this.data.plates.forEach(p => {
                         const option = document.createElement('option');
                         option.value = p.plateNumber;
                         option.textContent = p.plateNumber;
+                        select.appendChild(option);
+                    });
+
+                    select.value = currentValue;
+                });
+
+                // Payees (for filter and requests)
+                ['filter-payee', 'request-payee'].forEach(id => {
+                    const select = document.getElementById(id);
+                    if (!select) return;
+
+                    const currentValue = select.value;
+                    select.innerHTML = id === 'filter-payee' ? '<option value="">All Payees</option>' : '<option value="">-- Select Payee --</option>';
+
+                    this.data.payees.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.name;
+                        option.textContent = `${p.name}`;
                         select.appendChild(option);
                     });
 
@@ -4253,7 +5045,7 @@
                 // Current month total
                 const now = new Date();
                 const monthTransactions = transactions.filter(t => {
-                    const tDate = new Date(t.transDate);
+                    const tDate = this.parseFormattedDate(t.transDate);
                     return tDate.getFullYear() === now.getFullYear() &&
                         tDate.getMonth() === now.getMonth();
                 });
@@ -4261,14 +5053,24 @@
                 document.getElementById('month-amount').textContent = `₱${monthAmount.toFixed(2)}`;
 
                 // Status counts
-                document.getElementById('pending-count').textContent = transactions.filter(t => t.status === 'Pending').length;
-                document.getElementById('success-count').textContent = transactions.filter(t => t.status === 'Successful').length;
-                document.getElementById('failed-count').textContent = transactions.filter(t => t.status === 'Failed').length;
                 document.getElementById('void-count').textContent = transactions.filter(t => t.status === 'VOID').length;
+
+                // Open requests count
+                const openRequests = (this.data.requests || []).filter(r => r.status === 'Open' || r.status === 'Pending').length;
+                document.getElementById('db-open-requests').textContent = openRequests;
+                document.getElementById('dashboard-open-requests').textContent = openRequests;
 
                 // Recent transactions
                 const recent = [...transactions]
-                    .sort((a, b) => new Date(`${b.transDate}T${b.transTime}`) - new Date(`${a.transDate}T${a.transTime}`))
+                    .sort((a, b) => {
+                        const dateA = this.parseFormattedDate(a.transDate);
+                        const dateB = this.parseFormattedDate(b.transDate);
+                        // If dates are the same, sort by time
+                        if (dateA.getTime() === dateB.getTime()) {
+                            return b.transTime.localeCompare(a.transTime);
+                        }
+                        return dateB - dateA;
+                    })
                     .slice(0, 5);
 
                 const dashboardTbody = document.getElementById('dashboard-table-body');
@@ -4297,10 +5099,10 @@
                 const payee = document.getElementById('payee').value || 'Unknown';
                 const bank = document.getElementById('account-bank').value || 'Security Bank';
                 const amt = document.getElementById('amount').value || '0';
-                const msg = '🏦 YAMANA BANK\nControl: ' + ref + '\nPayee: ' + payee + '\nBank: ' + bank + '\nAmount: ₱' + parseFloat(amt).toFixed(2) + '\n✅ Sent';
-                const id = prompt('Enter Telegram Group Chat ID:');
-                if (!id) return;
-                fetch('https://api.telegram.org/bot8874970696:AAFHcKJHn6Dvb3_h8hE2qNgATkuv1z0YC7M/sendMessage', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:id,text:msg})}).then(r=>r.json()).then(d=>{this.showToast(d.ok?'✅ Sent!':'Error',d.ok?'success':'error');}).catch(e=>this.showToast('Error',   'error'));
+                const msg = '🏦 YAMANA BANK TRANSACTION\n\nControl #: ' + ref + '\nDate: ' + new Date().toLocaleDateString() + '\nBank: ' + bank + '\nPayee: ' + payee + '\nAmount: ₱' + parseFloat(amt).toFixed(2) + '\n\n✅ Sent from Security Bank App';
+                const id = prompt('Enter Telegram Group Chat ID:\n\nExample: -1001234567890');
+                if (!id) { this.showToast('Chat ID required', 'warning'); return; }
+                fetch('https://api.telegram.org/bot8874970696:AAFHcKJHn6Dvb3_h8hE2qNgATkuv1z0YC7M/sendMessage', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:id,text:msg})}).then(r=>r.json()).then(d=>{this.showToast(d.ok?'✅ Sent to Telegram!':'Error: '+d.description,d.ok?'success':'error');}).catch(e=>this.showToast('Error: '+e.message,'error'));
             }
 
         };
