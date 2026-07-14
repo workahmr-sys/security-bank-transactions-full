@@ -1666,43 +1666,8 @@
              * Initialize default master data
              */
             initializeDefaults() {
-                // Default payee categories
-                const defaultCategories = [
-                    'Driver', 'Supplier', 'Mechanic', 'Fuel Station', 'Government',
-                    'Employee', 'Others'
-                ];
-
-                this.data.payeeCategories = (this.data.payeeCategories && this.data.payeeCategories.length > 0) ? this.data.payeeCategories :
-                    defaultCategories.map((name, idx) => ({
-                        id: `category-${idx}`,
-                        name
-                    }));
-
-                // Default banks
-                const defaultBanks = [
-                    'Security Bank', 'BDO', 'BPI', 'Metrobank', 'Landbank',
-                    'UnionBank', 'RCBC', 'PNB', 'GCash', 'Maya', 'Others'
-                ];
-
-                this.data.banks = (this.data.banks && this.data.banks.length > 0) ? this.data.banks :
-                    defaultBanks.map((name, idx) => ({
-                        id: `bank-${idx}`,
-                        name
-                    }));
-
-                // Default expense types
-                const defaultExpenses = [
-                    'Fuel', 'Driver Salary', 'Boundary', 'Repair', 'Maintenance',
-                    'Tires', 'Battery', 'Oil', 'Toll Fee', 'Ferry', 'Office Supplies',
-                    'Cash Advance', 'Government Fees', 'Insurance', 'Registration', 'Others'
-                ];
-
-                this.data.expenseTypes = (this.data.expenseTypes && this.data.expenseTypes.length > 0) ? this.data.expenseTypes :
-                    defaultExpenses.map((name, idx) => ({
-                        id: `expense-${idx}`,
-                        name
-                    }));
-
+                // Start with empty master data - user can add their own or import
+                // No defaults loaded
                 this.saveData();
             },
 
